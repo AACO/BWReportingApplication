@@ -7,8 +7,8 @@ Uses:
 Connector/Net is a fully-managed ADO.NET driver for MySQL. From the MySQL team (http://dev.mysql.com/)
 
 Credits:
-Mark Ruffner (AACO)
-Acesential (Logo design)
+* Mark Ruffner (AACO)
+* Acesential (Logo design)
 
 Mentions:
-Antares, for this is his replacement
+* Antares, for this is his replacement
