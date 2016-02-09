@@ -1,0 +1,8 @@
+D:\BWServerLogger\BWServerLogger\bin\Debug\BWServerLogger.exe.config
+D:\BWServerLogger\BWServerLogger\bin\Debug\BWServerLogger.exe
+D:\BWServerLogger\BWServerLogger\bin\Debug\BWServerLogger.pdb
+D:\BWServerLogger\BWServerLogger\obj\Debug\BWServerLogger.Properties.Resources.resources
+D:\BWServerLogger\BWServerLogger\obj\Debug\BWServerLogger.csproj.GenerateResource.Cache
+D:\BWServerLogger\BWServerLogger\obj\Debug\BWServerLogger.exe
+D:\BWServerLogger\BWServerLogger\obj\Debug\BWServerLogger.pdb
+D:\BWServerLogger\BWServerLogger\obj\Debug\BWServerLogger.csprojResolveAssemblyReference.cache

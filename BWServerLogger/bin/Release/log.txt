@@ -1,0 +1,2 @@
+2015-08-02 03:58:33,158 [1] WARN  BWServerLogger.Service.ScheduleService [(null)] - Report already stopped
+2015-08-02 03:58:34,537 [1] WARN  BWServerLogger.Service.ScheduleService [(null)] - Report already stopped

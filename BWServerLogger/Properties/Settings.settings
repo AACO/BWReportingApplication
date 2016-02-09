@@ -1,0 +1,51 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="BWServerLogger.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="pollRate" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10000</Value>
+    </Setting>
+    <Setting Name="playedThreshold" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">600</Value>
+    </Setting>
+    <Setting Name="missionThreshold" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="runTimeThreshold" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">14400000</Value>
+    </Setting>
+    <Setting Name="armaServerAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">64.74.97.149</Value>
+    </Setting>
+    <Setting Name="armaServerPort" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2304</Value>
+    </Setting>
+    <Setting Name="mySQLServerAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">10.0.0.2</Value>
+    </Setting>
+    <Setting Name="mySQLServerPort" Type="System.String" Scope="User">
+      <Value Profile="(Default)">3307</Value>
+    </Setting>
+    <Setting Name="mySQLServerDatabase" Type="System.String" Scope="User">
+      <Value Profile="(Default)">bourbon</Value>
+    </Setting>
+    <Setting Name="mySQLServerUsername" Type="System.String" Scope="User">
+      <Value Profile="(Default)">bourbon</Value>
+    </Setting>
+    <Setting Name="mySQLServerPassword" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="key" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="iv" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="scheduleCheckRate" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10000</Value>
+    </Setting>
+    <Setting Name="retryTimeLimit" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">600000</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
