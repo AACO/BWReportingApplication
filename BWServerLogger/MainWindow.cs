@@ -44,7 +44,10 @@ namespace BWServerLogger
 
         ~MainWindow()
         {
-            _connection.Close();
+            if (_connection != null)
+            {
+                _connection.Close();
+            }
         }
 
         private void CheckThreadStatuses()

@@ -22,8 +22,6 @@ namespace BWServerLogger.Service
     {
         private static readonly ILog _logger = LogManager.GetLogger(typeof(ReportingService));
 
-        private volatile bool _kill;
-
         private int _missionCount = 0;
         private bool _inGame = false;
 
@@ -56,20 +54,19 @@ namespace BWServerLogger.Service
 
         public void StartReporting()
         {
-            _kill = false;
             Session session = null;
 
             Stopwatch runTime = new Stopwatch();
             runTime.Start();
             try
             {
-                while (!_kill && session == null && CheckTimeThreshold(runTime.ElapsedMilliseconds))
+                while (session == null && CheckTimeThreshold(runTime.ElapsedMilliseconds))
                 {
                     session = SetUpSession(Properties.Settings.Default.armaServerAddress, Properties.Settings.Default.armaServerPort);
                     System.Threading.Thread.Sleep(Properties.Settings.Default.pollRate);
                 }
 
-                while (!_kill && CheckMissionThreshold() && CheckTimeThreshold(runTime.ElapsedMilliseconds))
+                while (CheckMissionThreshold() && CheckTimeThreshold(runTime.ElapsedMilliseconds))
                 {
                     session = UpdateInfo(Properties.Settings.Default.armaServerAddress, Properties.Settings.Default.armaServerPort, session);
                     System.Threading.Thread.Sleep(Properties.Settings.Default.pollRate);
@@ -80,11 +77,6 @@ namespace BWServerLogger.Service
                 _logger.Error("Error reporting", nsie);
             }
 
-        }
-
-        public void Kill()
-        {
-            _kill = true;
         }
 
         private Session SetUpSession(string host, int port)
