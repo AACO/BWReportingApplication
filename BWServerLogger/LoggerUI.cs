@@ -32,9 +32,6 @@ namespace BWServerLogger
 
             try
             {
-                //ScheduleService scheduleService = new ScheduleService();
-                //System.Threading.Thread scheduleThread = new System.Threading.Thread(scheduleService.Start);
-                //scheduleThread.Start();
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new MainWindow());

@@ -17,7 +17,6 @@ namespace BWServerLogger.DAO
     public class ScheduleDAO
     {
         private MySqlConnection _connection;
-
         private MySqlCommand _addScheduleItem;
         private MySqlCommand _getScheduleItems;
         private MySqlCommand _removeScheduleItem;
@@ -31,13 +30,12 @@ namespace BWServerLogger.DAO
 
         public ISet<Schedule> GetScheduleItems()
         {
-            ISet<Schedule> scheduleItems = null;
+            ISet<Schedule> scheduleItems = new HashSet<Schedule>();
 
             MySqlDataReader getScheduleItemsResult = _getScheduleItems.ExecuteReader();
 
             if (getScheduleItemsResult.HasRows)
             {
-                scheduleItems = new HashSet<Schedule>();
                 while (getScheduleItemsResult.Read())
                 {
                     scheduleItems.Add(new Schedule(getScheduleItemsResult.GetInt32(0),

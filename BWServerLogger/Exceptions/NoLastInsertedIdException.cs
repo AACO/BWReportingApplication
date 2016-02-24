@@ -5,7 +5,7 @@ namespace BWServerLogger.Exceptions
     [Serializable]
     public class NoLastInsertedIdException : Exception
     {
-        public NoLastInsertedIdException()
+        public NoLastInsertedIdException() : base()
         {
         }
 

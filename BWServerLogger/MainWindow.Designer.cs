@@ -39,6 +39,11 @@ namespace BWServerLogger
             this.ScheduleInput = new System.Windows.Forms.Button();
             this.Schedule = new System.Windows.Forms.TabPage();
             this.ScheduleGrid = new System.Windows.Forms.DataGridView();
+            this.idDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dayOfTheWeekDataGridViewComboBoxColumn = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.timeOfDayDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.updatedDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.scheduleBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.Settings = new System.Windows.Forms.TabPage();
             this.SettingsTable = new System.Windows.Forms.TableLayoutPanel();
             this.ServerReconnectLimitLabel = new System.Windows.Forms.Label();
@@ -53,7 +58,6 @@ namespace BWServerLogger
             this.ArmA3ServerAddressLabel = new System.Windows.Forms.Label();
             this.ArmA3ServerPort = new System.Windows.Forms.Label();
             this.ArmA3ServerPollRateLabel = new System.Windows.Forms.Label();
-            this.ArmA3ScheduleCheckRateLabel = new System.Windows.Forms.Label();
             this.ArmA3PlayedThresholdLabel = new System.Windows.Forms.Label();
             this.ArmA3MissionThresholdLabel = new System.Windows.Forms.Label();
             this.MySQLServerAddressInput = new System.Windows.Forms.TextBox();
@@ -62,7 +66,6 @@ namespace BWServerLogger
             this.MySQLServerUsernameInput = new System.Windows.Forms.TextBox();
             this.MySQLServerPasswordInput = new System.Windows.Forms.TextBox();
             this.ArmA3ServerPollRateInput = new System.Windows.Forms.NumericUpDown();
-            this.ArmA3ScheduleCheckRateInput = new System.Windows.Forms.NumericUpDown();
             this.ArmA3PlayedThresholdInput = new System.Windows.Forms.NumericUpDown();
             this.ArmA3MissionThresholdInput = new System.Windows.Forms.NumericUpDown();
             this.ArmA3RunTimeThresholdInput = new System.Windows.Forms.NumericUpDown();
@@ -74,27 +77,21 @@ namespace BWServerLogger
             this.SchedulerRunning = new System.Windows.Forms.ToolStripStatusLabel();
             this.CloseUITip = new System.Windows.Forms.ToolTip(this.components);
             this.StatusTimer = new System.Windows.Forms.Timer(this.components);
-            this.idDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dayOfTheWeekDataGridViewComboBoxColumn = new System.Windows.Forms.DataGridViewComboBoxColumn();
-            this.timeOfDayDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.updatedDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.scheduleBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.TabbedWindow.SuspendLayout();
             this.Run.SuspendLayout();
             this.Schedule.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ScheduleGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.scheduleBindingSource)).BeginInit();
             this.Settings.SuspendLayout();
             this.SettingsTable.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3ServerPortInput)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MySQLServerPortInput)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3ServerPollRateInput)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ArmA3ScheduleCheckRateInput)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3PlayedThresholdInput)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3MissionThresholdInput)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3RunTimeThresholdInput)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.serverReconnectLimitInput)).BeginInit();
             this.statusStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.scheduleBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // TabbedWindow
@@ -191,6 +188,53 @@ namespace BWServerLogger
             this.ScheduleGrid.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.ScheduleGrid_CellValidating);
             this.ScheduleGrid.UserDeletingRow += new System.Windows.Forms.DataGridViewRowCancelEventHandler(this.ScheduleGrid_UserDeletingRow);
             // 
+            // idDataGridViewTextBoxColumn
+            // 
+            this.idDataGridViewTextBoxColumn.DataPropertyName = "Id";
+            this.idDataGridViewTextBoxColumn.HeaderText = "Id";
+            this.idDataGridViewTextBoxColumn.Name = "idDataGridViewTextBoxColumn";
+            this.idDataGridViewTextBoxColumn.ReadOnly = true;
+            this.idDataGridViewTextBoxColumn.Visible = false;
+            this.idDataGridViewTextBoxColumn.Width = 41;
+            // 
+            // dayOfTheWeekDataGridViewComboBoxColumn
+            // 
+            this.dayOfTheWeekDataGridViewComboBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.dayOfTheWeekDataGridViewComboBoxColumn.DataPropertyName = "DayOfTheWeek";
+            this.dayOfTheWeekDataGridViewComboBoxColumn.HeaderText = "Day Of The Week";
+            this.dayOfTheWeekDataGridViewComboBoxColumn.Items.AddRange(new object[] {
+            System.DayOfWeek.Sunday,
+            System.DayOfWeek.Monday,
+            System.DayOfWeek.Tuesday,
+            System.DayOfWeek.Wednesday,
+            System.DayOfWeek.Thursday,
+            System.DayOfWeek.Friday,
+            System.DayOfWeek.Saturday});
+            this.dayOfTheWeekDataGridViewComboBoxColumn.Name = "dayOfTheWeekDataGridViewComboBoxColumn";
+            this.dayOfTheWeekDataGridViewComboBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.dayOfTheWeekDataGridViewComboBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.dayOfTheWeekDataGridViewComboBoxColumn.ToolTipText = "Day for the application to run on";
+            // 
+            // timeOfDayDataGridViewTextBoxColumn
+            // 
+            this.timeOfDayDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.timeOfDayDataGridViewTextBoxColumn.DataPropertyName = "TimeOfDay";
+            this.timeOfDayDataGridViewTextBoxColumn.HeaderText = "Time Of Day";
+            this.timeOfDayDataGridViewTextBoxColumn.Name = "timeOfDayDataGridViewTextBoxColumn";
+            this.timeOfDayDataGridViewTextBoxColumn.ToolTipText = "Time the application runs in HH:mm:ss format";
+            // 
+            // updatedDataGridViewCheckBoxColumn
+            // 
+            this.updatedDataGridViewCheckBoxColumn.DataPropertyName = "Updated";
+            this.updatedDataGridViewCheckBoxColumn.HeaderText = "Updated";
+            this.updatedDataGridViewCheckBoxColumn.Name = "updatedDataGridViewCheckBoxColumn";
+            this.updatedDataGridViewCheckBoxColumn.Visible = false;
+            this.updatedDataGridViewCheckBoxColumn.Width = 54;
+            // 
+            // scheduleBindingSource
+            // 
+            this.scheduleBindingSource.DataSource = typeof(BWServerLogger.Model.Schedule);
+            // 
             // Settings
             // 
             this.Settings.AutoScroll = true;
@@ -211,8 +255,8 @@ namespace BWServerLogger
             this.SettingsTable.ColumnCount = 2;
             this.SettingsTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.SettingsTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.SettingsTable.Controls.Add(this.ServerReconnectLimitLabel, 0, 12);
-            this.SettingsTable.Controls.Add(this.ArmA3RunTimeThresholdLabel, 0, 11);
+            this.SettingsTable.Controls.Add(this.ServerReconnectLimitLabel, 0, 11);
+            this.SettingsTable.Controls.Add(this.ArmA3RunTimeThresholdLabel, 0, 10);
             this.SettingsTable.Controls.Add(this.ArmA3ServerAddressInput, 1, 5);
             this.SettingsTable.Controls.Add(this.ArmA3ServerPortInput, 1, 6);
             this.SettingsTable.Controls.Add(this.MySQLServerAddressLabel, 0, 0);
@@ -223,24 +267,21 @@ namespace BWServerLogger
             this.SettingsTable.Controls.Add(this.ArmA3ServerAddressLabel, 0, 5);
             this.SettingsTable.Controls.Add(this.ArmA3ServerPort, 0, 6);
             this.SettingsTable.Controls.Add(this.ArmA3ServerPollRateLabel, 0, 7);
-            this.SettingsTable.Controls.Add(this.ArmA3ScheduleCheckRateLabel, 0, 8);
-            this.SettingsTable.Controls.Add(this.ArmA3PlayedThresholdLabel, 0, 9);
-            this.SettingsTable.Controls.Add(this.ArmA3MissionThresholdLabel, 0, 10);
+            this.SettingsTable.Controls.Add(this.ArmA3PlayedThresholdLabel, 0, 8);
+            this.SettingsTable.Controls.Add(this.ArmA3MissionThresholdLabel, 0, 9);
             this.SettingsTable.Controls.Add(this.MySQLServerAddressInput, 1, 0);
             this.SettingsTable.Controls.Add(this.MySQLServerPortInput, 1, 1);
             this.SettingsTable.Controls.Add(this.MySQLServerDatabaseInput, 1, 2);
             this.SettingsTable.Controls.Add(this.MySQLServerUsernameInput, 1, 3);
             this.SettingsTable.Controls.Add(this.MySQLServerPasswordInput, 1, 4);
             this.SettingsTable.Controls.Add(this.ArmA3ServerPollRateInput, 1, 7);
-            this.SettingsTable.Controls.Add(this.ArmA3ScheduleCheckRateInput, 1, 8);
-            this.SettingsTable.Controls.Add(this.ArmA3PlayedThresholdInput, 1, 9);
-            this.SettingsTable.Controls.Add(this.ArmA3MissionThresholdInput, 1, 10);
-            this.SettingsTable.Controls.Add(this.ArmA3RunTimeThresholdInput, 1, 11);
-            this.SettingsTable.Controls.Add(this.serverReconnectLimitInput, 1, 12);
+            this.SettingsTable.Controls.Add(this.ArmA3PlayedThresholdInput, 1, 8);
+            this.SettingsTable.Controls.Add(this.ArmA3MissionThresholdInput, 1, 9);
+            this.SettingsTable.Controls.Add(this.ArmA3RunTimeThresholdInput, 1, 10);
+            this.SettingsTable.Controls.Add(this.serverReconnectLimitInput, 1, 11);
             this.SettingsTable.Location = new System.Drawing.Point(3, 3);
             this.SettingsTable.Name = "SettingsTable";
-            this.SettingsTable.RowCount = 13;
-            this.SettingsTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
+            this.SettingsTable.RowCount = 12;
             this.SettingsTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.SettingsTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.SettingsTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
@@ -253,7 +294,7 @@ namespace BWServerLogger
             this.SettingsTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.SettingsTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.SettingsTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.SettingsTable.Size = new System.Drawing.Size(596, 396);
+            this.SettingsTable.Size = new System.Drawing.Size(596, 360);
             this.SettingsTable.TabIndex = 3;
             // 
             // ServerReconnectLimitLabel
@@ -261,7 +302,7 @@ namespace BWServerLogger
             this.ServerReconnectLimitLabel.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.ServerReconnectLimitLabel.AutoSize = true;
             this.ServerReconnectLimitLabel.BackColor = System.Drawing.Color.Transparent;
-            this.ServerReconnectLimitLabel.Location = new System.Drawing.Point(177, 371);
+            this.ServerReconnectLimitLabel.Location = new System.Drawing.Point(177, 338);
             this.ServerReconnectLimitLabel.Name = "ServerReconnectLimitLabel";
             this.ServerReconnectLimitLabel.Size = new System.Drawing.Size(118, 13);
             this.ServerReconnectLimitLabel.TabIndex = 28;
@@ -273,7 +314,7 @@ namespace BWServerLogger
             this.ArmA3RunTimeThresholdLabel.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.ArmA3RunTimeThresholdLabel.AutoSize = true;
             this.ArmA3RunTimeThresholdLabel.BackColor = System.Drawing.Color.Transparent;
-            this.ArmA3RunTimeThresholdLabel.Location = new System.Drawing.Point(155, 338);
+            this.ArmA3RunTimeThresholdLabel.Location = new System.Drawing.Point(155, 308);
             this.ArmA3RunTimeThresholdLabel.Name = "ArmA3RunTimeThresholdLabel";
             this.ArmA3RunTimeThresholdLabel.Size = new System.Drawing.Size(140, 13);
             this.ArmA3RunTimeThresholdLabel.TabIndex = 27;
@@ -391,22 +432,11 @@ namespace BWServerLogger
             this.ArmA3ServerPollRateLabel.Text = "ArmA 3 Server Poll Rate";
             this.ArmA3ServerPollRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // ArmA3ScheduleCheckRateLabel
-            // 
-            this.ArmA3ScheduleCheckRateLabel.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.ArmA3ScheduleCheckRateLabel.AutoSize = true;
-            this.ArmA3ScheduleCheckRateLabel.Location = new System.Drawing.Point(146, 248);
-            this.ArmA3ScheduleCheckRateLabel.Name = "ArmA3ScheduleCheckRateLabel";
-            this.ArmA3ScheduleCheckRateLabel.Size = new System.Drawing.Size(149, 13);
-            this.ArmA3ScheduleCheckRateLabel.TabIndex = 24;
-            this.ArmA3ScheduleCheckRateLabel.Text = "ArmA 3 Schedule Check Rate";
-            this.ArmA3ScheduleCheckRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
             // ArmA3PlayedThresholdLabel
             // 
             this.ArmA3PlayedThresholdLabel.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.ArmA3PlayedThresholdLabel.AutoSize = true;
-            this.ArmA3PlayedThresholdLabel.Location = new System.Drawing.Point(169, 278);
+            this.ArmA3PlayedThresholdLabel.Location = new System.Drawing.Point(169, 248);
             this.ArmA3PlayedThresholdLabel.Name = "ArmA3PlayedThresholdLabel";
             this.ArmA3PlayedThresholdLabel.Size = new System.Drawing.Size(126, 13);
             this.ArmA3PlayedThresholdLabel.TabIndex = 25;
@@ -417,7 +447,7 @@ namespace BWServerLogger
             // 
             this.ArmA3MissionThresholdLabel.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.ArmA3MissionThresholdLabel.AutoSize = true;
-            this.ArmA3MissionThresholdLabel.Location = new System.Drawing.Point(166, 308);
+            this.ArmA3MissionThresholdLabel.Location = new System.Drawing.Point(166, 278);
             this.ArmA3MissionThresholdLabel.Name = "ArmA3MissionThresholdLabel";
             this.ArmA3MissionThresholdLabel.Size = new System.Drawing.Size(129, 13);
             this.ArmA3MissionThresholdLabel.TabIndex = 26;
@@ -491,26 +521,11 @@ namespace BWServerLogger
             this.ArmA3ServerPollRateInput.TabIndex = 8;
             this.CloseUITip.SetToolTip(this.ArmA3ServerPollRateInput, "How often, in seconds, the application checks the server");
             // 
-            // ArmA3ScheduleCheckRateInput
-            // 
-            this.ArmA3ScheduleCheckRateInput.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.ArmA3ScheduleCheckRateInput.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.ArmA3ScheduleCheckRateInput.Location = new System.Drawing.Point(301, 245);
-            this.ArmA3ScheduleCheckRateInput.Maximum = new decimal(new int[] {
-            2147483,
-            0,
-            0,
-            0});
-            this.ArmA3ScheduleCheckRateInput.Name = "ArmA3ScheduleCheckRateInput";
-            this.ArmA3ScheduleCheckRateInput.Size = new System.Drawing.Size(75, 20);
-            this.ArmA3ScheduleCheckRateInput.TabIndex = 9;
-            this.CloseUITip.SetToolTip(this.ArmA3ScheduleCheckRateInput, "How often, in seconds, the application checks the schedules");
-            // 
             // ArmA3PlayedThresholdInput
             // 
             this.ArmA3PlayedThresholdInput.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.ArmA3PlayedThresholdInput.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.ArmA3PlayedThresholdInput.Location = new System.Drawing.Point(301, 275);
+            this.ArmA3PlayedThresholdInput.Location = new System.Drawing.Point(301, 245);
             this.ArmA3PlayedThresholdInput.Maximum = new decimal(new int[] {
             2147483647,
             0,
@@ -525,7 +540,7 @@ namespace BWServerLogger
             // 
             this.ArmA3MissionThresholdInput.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.ArmA3MissionThresholdInput.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.ArmA3MissionThresholdInput.Location = new System.Drawing.Point(301, 305);
+            this.ArmA3MissionThresholdInput.Location = new System.Drawing.Point(301, 275);
             this.ArmA3MissionThresholdInput.Maximum = new decimal(new int[] {
             2147483647,
             0,
@@ -540,7 +555,7 @@ namespace BWServerLogger
             // 
             this.ArmA3RunTimeThresholdInput.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.ArmA3RunTimeThresholdInput.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.ArmA3RunTimeThresholdInput.Location = new System.Drawing.Point(301, 335);
+            this.ArmA3RunTimeThresholdInput.Location = new System.Drawing.Point(301, 305);
             this.ArmA3RunTimeThresholdInput.Maximum = new decimal(new int[] {
             2147483647,
             0,
@@ -555,7 +570,7 @@ namespace BWServerLogger
             // 
             this.serverReconnectLimitInput.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.serverReconnectLimitInput.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.serverReconnectLimitInput.Location = new System.Drawing.Point(301, 368);
+            this.serverReconnectLimitInput.Location = new System.Drawing.Point(301, 335);
             this.serverReconnectLimitInput.Maximum = new decimal(new int[] {
             2147483647,
             0,
@@ -617,53 +632,6 @@ namespace BWServerLogger
             this.StatusTimer.Interval = 500;
             this.StatusTimer.Tick += new System.EventHandler(this.StatusTimer_Tick);
             // 
-            // idDataGridViewTextBoxColumn
-            // 
-            this.idDataGridViewTextBoxColumn.DataPropertyName = "Id";
-            this.idDataGridViewTextBoxColumn.HeaderText = "Id";
-            this.idDataGridViewTextBoxColumn.Name = "idDataGridViewTextBoxColumn";
-            this.idDataGridViewTextBoxColumn.ReadOnly = true;
-            this.idDataGridViewTextBoxColumn.Visible = false;
-            this.idDataGridViewTextBoxColumn.Width = 41;
-            // 
-            // dayOfTheWeekDataGridViewComboBoxColumn
-            // 
-            this.dayOfTheWeekDataGridViewComboBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.dayOfTheWeekDataGridViewComboBoxColumn.DataPropertyName = "DayOfTheWeek";
-            this.dayOfTheWeekDataGridViewComboBoxColumn.HeaderText = "Day Of The Week";
-            this.dayOfTheWeekDataGridViewComboBoxColumn.Items.AddRange(new object[] {
-            System.DayOfWeek.Sunday,
-            System.DayOfWeek.Monday,
-            System.DayOfWeek.Tuesday,
-            System.DayOfWeek.Wednesday,
-            System.DayOfWeek.Thursday,
-            System.DayOfWeek.Friday,
-            System.DayOfWeek.Saturday});
-            this.dayOfTheWeekDataGridViewComboBoxColumn.Name = "dayOfTheWeekDataGridViewComboBoxColumn";
-            this.dayOfTheWeekDataGridViewComboBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.dayOfTheWeekDataGridViewComboBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.dayOfTheWeekDataGridViewComboBoxColumn.ToolTipText = "Day for the application to run on";
-            // 
-            // timeOfDayDataGridViewTextBoxColumn
-            // 
-            this.timeOfDayDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.timeOfDayDataGridViewTextBoxColumn.DataPropertyName = "TimeOfDay";
-            this.timeOfDayDataGridViewTextBoxColumn.HeaderText = "Time Of Day";
-            this.timeOfDayDataGridViewTextBoxColumn.Name = "timeOfDayDataGridViewTextBoxColumn";
-            this.timeOfDayDataGridViewTextBoxColumn.ToolTipText = "Time the application runs in HH:mm:ss format";
-            // 
-            // updatedDataGridViewCheckBoxColumn
-            // 
-            this.updatedDataGridViewCheckBoxColumn.DataPropertyName = "Updated";
-            this.updatedDataGridViewCheckBoxColumn.HeaderText = "Updated";
-            this.updatedDataGridViewCheckBoxColumn.Name = "updatedDataGridViewCheckBoxColumn";
-            this.updatedDataGridViewCheckBoxColumn.Visible = false;
-            this.updatedDataGridViewCheckBoxColumn.Width = 54;
-            // 
-            // scheduleBindingSource
-            // 
-            this.scheduleBindingSource.DataSource = typeof(BWServerLogger.Model.Schedule);
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -681,20 +649,19 @@ namespace BWServerLogger
             this.Run.ResumeLayout(false);
             this.Schedule.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.ScheduleGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.scheduleBindingSource)).EndInit();
             this.Settings.ResumeLayout(false);
             this.SettingsTable.ResumeLayout(false);
             this.SettingsTable.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3ServerPortInput)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.MySQLServerPortInput)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3ServerPollRateInput)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ArmA3ScheduleCheckRateInput)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3PlayedThresholdInput)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3MissionThresholdInput)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ArmA3RunTimeThresholdInput)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.serverReconnectLimitInput)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.scheduleBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -721,7 +688,6 @@ namespace BWServerLogger
         private System.Windows.Forms.Label MySQLServerUsernameLabel;
         private System.Windows.Forms.Label MySQLServerPasswordLabel;
         private System.Windows.Forms.Label ArmA3ServerPollRateLabel;
-        private System.Windows.Forms.Label ArmA3ScheduleCheckRateLabel;
         private System.Windows.Forms.Label ArmA3PlayedThresholdLabel;
         private System.Windows.Forms.Label ArmA3MissionThresholdLabel;
         private System.Windows.Forms.Label ArmA3RunTimeThresholdLabel;
@@ -731,14 +697,12 @@ namespace BWServerLogger
         private System.Windows.Forms.TextBox MySQLServerUsernameInput;
         private System.Windows.Forms.TextBox MySQLServerPasswordInput;
         private System.Windows.Forms.NumericUpDown ArmA3ServerPollRateInput;
-        private System.Windows.Forms.NumericUpDown ArmA3ScheduleCheckRateInput;
         private System.Windows.Forms.NumericUpDown ArmA3PlayedThresholdInput;
         private System.Windows.Forms.NumericUpDown ArmA3MissionThresholdInput;
         private System.Windows.Forms.NumericUpDown ArmA3RunTimeThresholdInput;
         private System.Windows.Forms.Label ServerReconnectLimitLabel;
         private System.Windows.Forms.NumericUpDown serverReconnectLimitInput;
         private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel SchedulerRunning;
         private System.Windows.Forms.Button ScheduleInput;
         private System.Windows.Forms.DataGridViewTextBoxColumn idDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewComboBoxColumn dayOfTheWeekDataGridViewComboBoxColumn;
@@ -749,6 +713,7 @@ namespace BWServerLogger
         private System.Windows.Forms.Button ReportingInput;
         private System.Windows.Forms.ToolStripStatusLabel ReportStatus;
         private System.Windows.Forms.Timer StatusTimer;
+        private System.Windows.Forms.ToolStripStatusLabel SchedulerRunning;
     }
 }
 

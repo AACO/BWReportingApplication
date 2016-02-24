@@ -5,7 +5,7 @@ namespace BWServerLogger.Exceptions
     [Serializable]
     public class NoServerInfoException : Exception
     {
-        public NoServerInfoException()
+        public NoServerInfoException() : base()
         {
         }
 

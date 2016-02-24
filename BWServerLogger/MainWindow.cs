@@ -1,5 +1,8 @@
 ﻿using log4net;
 
+using MySql.Data.Common;
+using MySql.Data.MySqlClient;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,6 +15,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using BWServerLogger.DAO;
+using BWServerLogger.Job;
 using BWServerLogger.Model;
 using BWServerLogger.Service;
 using BWServerLogger.Util;
@@ -24,32 +29,38 @@ namespace BWServerLogger
         private static readonly ILog _logger = LogManager.GetLogger(typeof(MainWindow));
 
         private bool _closeThreads = true;
-        private Thread _scheduleThread;
-        private ScheduleService _scheduleService;
-        
+        private Thread _reportingThread;
+        private MySqlConnection _connection;
+        private ScheduleDAO _scheduleDAO;
 
         public MainWindow()
         {
-            ConstructSchedulerThread();
-            StartSchedulerThread();
+            _connection = DatabaseUtil.OpenDataSource();
+            _scheduleDAO = new ScheduleDAO(_connection);
 
+            ConstructReportingThread();
             InitializeComponent();
+        }
+
+        ~MainWindow()
+        {
+            _connection.Close();
         }
 
         private void CheckThreadStatuses()
         {
-            if (IsSchedulerRunning())
+            if (IsScheduleRunning())
             {
-                this.SchedulerRunning.BackColor = Color.Green;
+                this.ScheduleInput.BackColor = Color.Green;
                 this.ScheduleInput.Text = "Stop Scheduler";
             }
             else
             {
-                this.SchedulerRunning.BackColor = Color.Red;
+                this.ScheduleInput.BackColor = Color.Red;
                 this.ScheduleInput.Text = "Start Scheduler";
             }
 
-            if (_scheduleService != null && _scheduleService.IsReportRunning())
+            if (IsReportRunning())
             {
                 this.ReportStatus.BackColor = Color.Green;
                 this.ReportingInput.Text = "Stop Reporting";
@@ -61,24 +72,16 @@ namespace BWServerLogger
             }
         }
 
-        private void ConstructSchedulerThread()
+        private void ConstructReportingThread()
         {
             try
             {
-                _scheduleService = new ScheduleService();
-                _scheduleThread = new Thread(_scheduleService.Start);
+                _reportingThread = new Thread(new ReportingJob(_scheduleDAO).StartJob);
+                _reportingThread.Start();
             }
             catch (Exception e)
             {
-                _logger.Error("Scheduler could not be constructed", e);
-            }
-        }
-
-        private void ConstructSchedulerThreadIfNeeded()
-        {
-            if (_scheduleService == null || _scheduleThread == null)
-            {
-                ConstructSchedulerThread();
+                _logger.Error("Scheduler could not be constructed or started", e);
             }
         }
 
@@ -94,7 +97,6 @@ namespace BWServerLogger
             this.ArmA3MissionThresholdInput.Value = Properties.Settings.Default.missionThreshold;
             this.ArmA3PlayedThresholdInput.Value = Properties.Settings.Default.playedThreshold;
             this.ArmA3RunTimeThresholdInput.Value = ToSeconds(Properties.Settings.Default.runTimeThreshold);
-            this.ArmA3ScheduleCheckRateInput.Value = ToSeconds(Properties.Settings.Default.scheduleCheckRate);
             this.ArmA3ServerAddressInput.Text = Properties.Settings.Default.armaServerAddress;
             this.ArmA3ServerPollRateInput.Value = ToSeconds(Properties.Settings.Default.pollRate);
             this.ArmA3ServerPortInput.Value = Properties.Settings.Default.armaServerPort;
@@ -102,12 +104,16 @@ namespace BWServerLogger
 
             // set up scheduler
             this.scheduleBindingSource.Clear();
-            if (_scheduleService != null && _scheduleService.GetCachedScheduleItems() != null)
+            try
             {
-                foreach (Schedule scheduleItem in _scheduleService.GetCachedScheduleItems())
+                foreach (Schedule scheduleItem in _scheduleDAO.GetScheduleItems())
                 {
                     this.scheduleBindingSource.Add(scheduleItem);
                 }
+            }
+            catch (MySqlException ex)
+            {
+                _logger.Error("Problem getting schedule items", ex);
             }
         }
 
@@ -115,19 +121,19 @@ namespace BWServerLogger
         {
             if (_closeThreads)
             {
-                StopSchedulerThread();
+                StopReportingJobThread();
             }
         }
 
         private void ScheduleInput_Click(object sender, EventArgs e)
         {
-            if (IsSchedulerRunning())
+            if (IsScheduleRunning())
             {
-                StopSchedulerThread();
+                StopReportingJobThread();
             }
             else
             {
-                StartSchedulerThread();
+                StartReportingJobThread();
             }
         }
 
@@ -151,7 +157,6 @@ namespace BWServerLogger
             Properties.Settings.Default.missionThreshold = (int)this.ArmA3MissionThresholdInput.Value;
             Properties.Settings.Default.playedThreshold = (int)this.ArmA3PlayedThresholdInput.Value;
             Properties.Settings.Default.runTimeThreshold = ToMilliseconds(this.ArmA3RunTimeThresholdInput.Value);
-            Properties.Settings.Default.scheduleCheckRate = ToMilliseconds(this.ArmA3ScheduleCheckRateInput.Value);
             Properties.Settings.Default.armaServerAddress = this.ArmA3ServerAddressInput.Text;
             Properties.Settings.Default.pollRate = ToMilliseconds(this.ArmA3ServerPollRateInput.Value);
             Properties.Settings.Default.armaServerPort = (int)this.ArmA3ServerPortInput.Value;
@@ -174,37 +179,41 @@ namespace BWServerLogger
         private void ScheduleGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             this.scheduleBindingSource.Position = e.RowIndex;
-            if (_scheduleService != null)
+            try
             {
-                _logger.Error("Scheduler Service is null! can't save schedule items");
+                if (!IsReportRunning())
+                {
+                    StopReportingJobThread();
+                }
+
+                _scheduleDAO.SaveScheduleItem((Schedule)this.scheduleBindingSource.Current);
+
+                if (!IsScheduleRunning())
+                {
+                    StartReportingJobThread();
+                }
             }
-            else
+            catch (MySqlException ex)
             {
-                _scheduleService.SaveScheduleItem((Schedule)this.scheduleBindingSource.Current);
+                _logger.Error("Problem getting schedule items", ex);
             }
             MainWindow_Load(sender, e);
         }
 
-        private void StartSchedulerThread()
+        private void StartReportingJobThread()
         {
-            ConstructSchedulerThreadIfNeeded();
-            try
+            if (_reportingThread == null)
             {
-                _scheduleThread.Start();
-                while (!_scheduleThread.IsAlive);
-            }
-            catch (Exception e)
-            {
-                _logger.Error("Scheduler could not be started", e);
+                ConstructReportingThread();
             }
         }
 
-        private void StopSchedulerThread()
+        private void StopReportingJobThread()
         {
             try
             {
-                _scheduleService.Kill();
-                _scheduleThread.Join();
+                _reportingThread.Abort();
+                _reportingThread = null;
             }
             catch (Exception e)
             {
@@ -212,20 +221,35 @@ namespace BWServerLogger
             }
         }
 
-        private bool IsSchedulerRunning()
+        private bool IsReportRunning()
         {
-            return _scheduleThread != null && _scheduleThread.IsAlive;
+            return _reportingThread != null && _reportingThread.ThreadState == ThreadState.Running;
+        }
+
+        private bool IsScheduleRunning()
+        {
+            return _reportingThread != null;
         }
 
         private void ScheduleGrid_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e)
         {
-            if (_scheduleService == null)
+            try
             {
-                _logger.Error("Scheduler service is null, can't remove a schedule item");
+                if (!IsReportRunning())
+                {
+                    StopReportingJobThread();
+                }
+
+                _scheduleDAO.RemoveScheduleItem((Schedule)e.Row.DataBoundItem);
+
+                if (!IsScheduleRunning())
+                {
+                    StartReportingJobThread();
+                }
             }
-            else
+            catch (MySqlException ex)
             {
-                _scheduleService.RemoveScheduleItem((Schedule)e.Row.DataBoundItem);
+                _logger.Error("Problem getting schedule items", ex);
             }
         }
 
@@ -242,21 +266,25 @@ namespace BWServerLogger
 
         private void ReportingInput_Click(object sender, EventArgs e)
         {
-            if (_scheduleService != null && _scheduleService.IsReportRunning())
+            if (IsReportRunning())
             {
-                ConstructSchedulerThreadIfNeeded();
-                _scheduleService.StopReportingThread();
+                StopReportingJobThread();
+
+                try
+                {
+                    _reportingThread = new Thread(new ReportingJob(_scheduleDAO).ForceJobRun);
+                    _reportingThread.Start();
+                }
+                catch(Exception ex)
+                {
+                    _logger.Error("Cannot force start a reporting job", ex);
+                }
             }
             else
             {
-                if (_scheduleService == null)
-                {
-                    _logger.Error("Scheduler Service is null! can't start reporting");
-                }
-                else
-                {
-                    _scheduleService.StartReportingThread();
-                }
+                _logger.ErrorFormat("Cannot force start a reporting job. Reporting thread: %s, thread status %s",
+                    _reportingThread,
+                    _reportingThread == null ? "Null" : _reportingThread.ThreadState.ToString());
             }
         }
 

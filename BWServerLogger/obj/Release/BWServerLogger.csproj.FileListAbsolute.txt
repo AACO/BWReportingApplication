@@ -13,3 +13,11 @@ D:\BWServerLogger\BWServerLogger\obj\Release\BWServerLogger.MainWindow.resources
 D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\BWServerLogger.exe.config
 D:\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.exe
 D:\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.pdb
+D:\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.MainWindow.resources
+D:\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.Properties.Resources.resources
+D:\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.csproj.GenerateResource.Cache
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\BWServerLogger.exe
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\BWServerLogger.pdb
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\log4net.dll
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\MySql.Data.dll
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\log4net.xml

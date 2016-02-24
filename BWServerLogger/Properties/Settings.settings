@@ -41,9 +41,6 @@
     <Setting Name="iv" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="scheduleCheckRate" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">10000</Value>
-    </Setting>
     <Setting Name="retryTimeLimit" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">600000</Value>
     </Setting>
