@@ -1,0 +1,50 @@
+2016-02-25 11:37:33,464 [18] ERROR BWServerLogger.Job.ReportingJob [(null)] - Problem running job (possible interrupt?)
+MySql.Data.MySqlClient.MySqlException (0x80004005): Unknown column 'notes' in 'field list'
+   at MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   at MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   at MySql.Data.MySqlClient.Driver.GetResult(Int32 statementId, Int32& affectedRows, Int64& insertedId)
+   at MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   at MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   at MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   at MySql.Data.MySqlClient.MySqlCommand.ExecuteReader()
+   at MySql.Data.MySqlClient.MySqlCommand.ExecuteNonQuery()
+   at BWServerLogger.DAO.MissionDAO.GetOrCreateMissionSession(String mapName, String mission, Session session) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\DAO\MissionDAO.cs:line 102
+   at BWServerLogger.Service.ReportingService.UpdateMissionData(Session session, ServerInfo serverInfo) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Service\ReportingService.cs:line 162
+   at BWServerLogger.Service.ReportingService.UpdateInfo(String host, Int32 port, Session session) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Service\ReportingService.cs:line 112
+   at BWServerLogger.Service.ReportingService.StartReporting() in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Service\ReportingService.cs:line 71
+   at BWServerLogger.Job.ReportingJob.DoJob(Boolean forced) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Job\ReportingJob.cs:line 54
+2016-02-25 11:37:52,403 [12] ERROR BWServerLogger.Job.ReportingJob [(null)] - Problem running job (possible interrupt?)
+MySql.Data.MySqlClient.MySqlException (0x80004005): Unknown column 'notes' in 'field list'
+   at MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   at MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   at MySql.Data.MySqlClient.Driver.GetResult(Int32 statementId, Int32& affectedRows, Int64& insertedId)
+   at MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   at MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   at MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   at MySql.Data.MySqlClient.MySqlCommand.ExecuteReader()
+   at MySql.Data.MySqlClient.MySqlCommand.ExecuteNonQuery()
+   at BWServerLogger.DAO.MissionDAO.GetOrCreateMissionSession(String mapName, String mission, Session session) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\DAO\MissionDAO.cs:line 102
+   at BWServerLogger.Service.ReportingService.UpdateMissionData(Session session, ServerInfo serverInfo) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Service\ReportingService.cs:line 162
+   at BWServerLogger.Service.ReportingService.UpdateInfo(String host, Int32 port, Session session) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Service\ReportingService.cs:line 112
+   at BWServerLogger.Service.ReportingService.StartReporting() in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Service\ReportingService.cs:line 71
+   at BWServerLogger.Job.ReportingJob.DoJob(Boolean forced) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Job\ReportingJob.cs:line 54
+2016-02-25 11:38:08,961 [15] ERROR BWServerLogger.Job.ReportingJob [(null)] - Problem running job (possible interrupt?)
+MySql.Data.MySqlClient.MySqlException (0x80004005): Unknown column 'notes' in 'field list'
+   at MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   at MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   at MySql.Data.MySqlClient.Driver.GetResult(Int32 statementId, Int32& affectedRows, Int64& insertedId)
+   at MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   at MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   at MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   at MySql.Data.MySqlClient.MySqlCommand.ExecuteReader()
+   at MySql.Data.MySqlClient.MySqlCommand.ExecuteNonQuery()
+   at BWServerLogger.DAO.MissionDAO.GetOrCreateMissionSession(String mapName, String mission, Session session) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\DAO\MissionDAO.cs:line 102
+   at BWServerLogger.Service.ReportingService.UpdateMissionData(Session session, ServerInfo serverInfo) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Service\ReportingService.cs:line 162
+   at BWServerLogger.Service.ReportingService.UpdateInfo(String host, Int32 port, Session session) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Service\ReportingService.cs:line 112
+   at BWServerLogger.Service.ReportingService.StartReporting() in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Service\ReportingService.cs:line 71
+   at BWServerLogger.Job.ReportingJob.DoJob(Boolean forced) in c:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\Job\ReportingJob.cs:line 54
+2016-02-25 11:39:12,034 [9] ERROR BWServerLogger.MainWindow [(null)] - Cannot force start a reporting job. Reporting thread: System.Threading.Thread, thread status Stopped
+2016-02-25 11:39:16,837 [9] ERROR BWServerLogger.MainWindow [(null)] - Cannot force start a reporting job. Reporting thread: System.Threading.Thread, thread status Stopped
+2016-02-25 11:39:17,712 [9] ERROR BWServerLogger.MainWindow [(null)] - Cannot force start a reporting job. Reporting thread: System.Threading.Thread, thread status Stopped
+2016-02-25 11:39:17,908 [9] ERROR BWServerLogger.MainWindow [(null)] - Cannot force start a reporting job. Reporting thread: System.Threading.Thread, thread status Stopped
+2016-02-25 11:39:18,125 [9] ERROR BWServerLogger.MainWindow [(null)] - Cannot force start a reporting job. Reporting thread: System.Threading.Thread, thread status Stopped

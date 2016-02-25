@@ -97,11 +97,10 @@ namespace BWServerLogger.Util
 
         public static string GetMySQLPassword()
         {
+            // Declare the string used to hold the decrypted text. 
+            string plainText = "";
             try
             {
-                // Declare the string used to hold the decrypted text. 
-                string plaintext = null;
-
                 byte[] encrypted = Properties.Settings.Default.mySQLServerPassword;
                 byte[] key = Properties.Settings.Default.key;
                 byte[] iv = Properties.Settings.Default.iv;
@@ -123,19 +122,19 @@ namespace BWServerLogger.Util
                             using (StreamReader srDecrypt = new StreamReader(csDecrypt))
                             {
                                 // Read the decrypted bytes from the decrypting stream and place them in a string.
-                                plaintext = srDecrypt.ReadToEnd();
+                                plainText = srDecrypt.ReadToEnd();
                             }
                         }
                     }
 
                 }
-                return plaintext;
+                
             }
             catch (Exception e)
             {
-                logger.Error("Error decrypting a value, returning null", e);
-                return null;
+                logger.Error("Error decrypting a value, returning empty string", e);
             }
+            return plainText;
         }
 
         public static void SetMySQLPassword(string password)
