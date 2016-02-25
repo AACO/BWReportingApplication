@@ -17,11 +17,8 @@ using BWServerLogger.Util;
 
 namespace BWServerLogger.DAO
 {
-    public class MissionDAO
+    public class MissionDAO : BaseDAO
     {
-        private static readonly ILog logger = LogManager.GetLogger(typeof(MissionDAO));
-
-        private MySqlConnection _connection;
         private MySqlCommand _getMap;
         private MySqlCommand _addMap;
         private MySqlCommand _getMissionSession;
@@ -30,10 +27,8 @@ namespace BWServerLogger.DAO
         private MySqlCommand _addMission;
         private MySqlCommand _updateMission;
 
-        public MissionDAO(MySqlConnection connection)
+        public MissionDAO(MySqlConnection connection) : base (connection)
         {
-            _connection = connection;
-            SetupPreparedStatements();
         }
 
         public MissionSession GetOrCreateMissionSession(string mapName, string mission, Session session)
@@ -72,7 +67,7 @@ namespace BWServerLogger.DAO
                     _addMissionSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
                     _addMissionSession.ExecuteNonQuery();
 
-                    missionSession.Id = DatabaseUtil.GetLastInsertedId(ref _connection);
+                    missionSession.Id = GetLastInsertedId();
                 }
                 else
                 {
@@ -101,13 +96,13 @@ namespace BWServerLogger.DAO
                 _addMission.Parameters[DatabaseUtil.MAP_ID_KEY].Value = missionSession.Mission.Map.Id;
                 _addMission.ExecuteNonQuery();
 
-                missionSession.Mission.Id = DatabaseUtil.GetLastInsertedId(ref _connection);
+                missionSession.Mission.Id = GetLastInsertedId();
 
                 _addMissionSession.Parameters[DatabaseUtil.MISSION_ID_KEY].Value = missionSession.Mission.Id;
                 _addMissionSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
                 _addMissionSession.ExecuteNonQuery();
 
-                missionSession.Id = DatabaseUtil.GetLastInsertedId(ref _connection);
+                missionSession.Id = GetLastInsertedId();
             }
 
             return missionSession;
@@ -145,13 +140,23 @@ namespace BWServerLogger.DAO
                 _addMap.Parameters[DatabaseUtil.NAME_KEY].Value = mapName;
                 _addMap.ExecuteNonQuery();
 
-                mapId = DatabaseUtil.GetLastInsertedId(ref _connection);
+                mapId = GetLastInsertedId();
             }
 
             return mapId;
         }
 
-        private void SetupPreparedStatements()
+        protected override ISet<Column> GetColumns()
+        {
+            return new HashSet<Column>();
+        }
+
+        protected override string GetTable()
+        {
+            return "mission";
+        }
+
+        protected override void SetupPreparedStatements(MySqlConnection connection)
         {
             StringBuilder getMissionSessionSelect = new StringBuilder();
             getMissionSessionSelect.Append("select m.id, ");
@@ -165,7 +170,7 @@ namespace BWServerLogger.DAO
             getMissionSessionSelect.Append("where m.name = ");
             getMissionSessionSelect.Append(DatabaseUtil.NAME_KEY);
 
-            _getMissionSession = new MySqlCommand(getMissionSessionSelect.ToString(), _connection);
+            _getMissionSession = new MySqlCommand(getMissionSessionSelect.ToString(), connection);
             _getMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.NAME_KEY, MySqlDbType.String));
             _getMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.SESSION_ID_KEY, MySqlDbType.Int32));
             _getMissionSession.Prepare();
@@ -178,7 +183,7 @@ namespace BWServerLogger.DAO
             addMissionSessionInsert.Append(DatabaseUtil.SESSION_ID_KEY);
             addMissionSessionInsert.Append(")");
 
-            _addMissionSession = new MySqlCommand(addMissionSessionInsert.ToString(), _connection);
+            _addMissionSession = new MySqlCommand(addMissionSessionInsert.ToString(), connection);
             _addMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.MISSION_ID_KEY, MySqlDbType.Int32));
             _addMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.SESSION_ID_KEY, MySqlDbType.Int32));
             _addMissionSession.Prepare();
@@ -189,7 +194,7 @@ namespace BWServerLogger.DAO
             getMapSelect.Append("where name = ");
             getMapSelect.Append(DatabaseUtil.NAME_KEY);
 
-            _getMap = new MySqlCommand(getMapSelect.ToString(), _connection);
+            _getMap = new MySqlCommand(getMapSelect.ToString(), connection);
             _getMap.Parameters.Add(new MySqlParameter(DatabaseUtil.NAME_KEY, MySqlDbType.String));
             _getMap.Prepare();
 
@@ -201,7 +206,7 @@ namespace BWServerLogger.DAO
             addMapInsert.Append(DatabaseUtil.NAME_KEY);
             addMapInsert.Append(")");
 
-            _addMap = new MySqlCommand(addMapInsert.ToString(), _connection);
+            _addMap = new MySqlCommand(addMapInsert.ToString(), connection);
             _addMap.Parameters.Add(new MySqlParameter(DatabaseUtil.FRIENDLY_NAME_KEY, MySqlDbType.String));
             _addMap.Parameters.Add(new MySqlParameter(DatabaseUtil.NAME_KEY, MySqlDbType.String));
             _addMap.Prepare();
@@ -218,7 +223,7 @@ namespace BWServerLogger.DAO
             addMissionInsert.Append(DatabaseUtil.DEFAULT_PLAYER_COUNT);
             addMissionInsert.Append(")");
 
-            _addMission = new MySqlCommand(addMissionInsert.ToString(), _connection);
+            _addMission = new MySqlCommand(addMissionInsert.ToString(), connection);
             _addMission.Parameters.Add(new MySqlParameter(DatabaseUtil.NAME_KEY, MySqlDbType.String));
             _addMission.Parameters.Add(new MySqlParameter(DatabaseUtil.MAP_ID_KEY, MySqlDbType.Int32));
             _addMission.Prepare();
@@ -233,7 +238,7 @@ namespace BWServerLogger.DAO
             missionSessionUpdate.Append("where id = ");
             missionSessionUpdate.Append(DatabaseUtil.MISSION_TO_SESSION_ID_KEY);
 
-            _updateMissionSession = new MySqlCommand(missionSessionUpdate.ToString(), _connection);
+            _updateMissionSession = new MySqlCommand(missionSessionUpdate.ToString(), connection);
             _updateMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.LENGTH_KEY, MySqlDbType.Int32));
             _updateMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYED_KEY, MySqlDbType.Bit));
             _updateMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.MISSION_TO_SESSION_ID_KEY, MySqlDbType.Int32));
@@ -247,7 +252,7 @@ namespace BWServerLogger.DAO
             missionUpdate.Append("where id = ");
             missionUpdate.Append(DatabaseUtil.MISSION_ID_KEY);
 
-            _updateMission = new MySqlCommand(missionUpdate.ToString(), _connection);
+            _updateMission = new MySqlCommand(missionUpdate.ToString(), connection);
             _updateMission.Parameters.Add(new MySqlParameter(DatabaseUtil.MAP_ID_KEY, MySqlDbType.Int32));
             _updateMission.Parameters.Add(new MySqlParameter(DatabaseUtil.MISSION_ID_KEY, MySqlDbType.Int32));
             _updateMission.Prepare();

@@ -14,16 +14,14 @@ using BWServerLogger.Util;
 
 namespace BWServerLogger.DAO
 {
-    public class SessionDAO
+    public class SessionDAO : BaseDAO
     {
-        private MySqlConnection _connection;
         private MySqlCommand _addSession;
         private MySqlCommand _updateSession;
 
-        public SessionDAO(MySqlConnection connection)
+        public SessionDAO(MySqlConnection connection) : base(connection)
         {
-            _connection = connection;
-            SetupPreparedStatements();
+            SetupPreparedStatements(connection);
         }
 
         public Session CreateSession(Session session)
@@ -53,7 +51,7 @@ namespace BWServerLogger.DAO
             _addSession.Parameters[DatabaseUtil.MAX_PING_KEY].Value = session.MaxPing;
             _addSession.ExecuteNonQuery();
 
-            session.Id = DatabaseUtil.GetLastInsertedId(ref _connection);
+            session.Id = GetLastInsertedId();
 
             return session;
         }
@@ -67,7 +65,17 @@ namespace BWServerLogger.DAO
             _updateSession.ExecuteNonQuery();
         }
 
-        private void SetupPreparedStatements()
+        protected override ISet<Column> GetColumns()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override string GetTable()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void SetupPreparedStatements(MySqlConnection connection)
         {
             StringBuilder addSessionInsert = new StringBuilder();
             addSessionInsert.Append("insert into session (date, max_players, version, host_name, min_ping, max_ping) values");
@@ -85,7 +93,7 @@ namespace BWServerLogger.DAO
             addSessionInsert.Append(DatabaseUtil.MAX_PING_KEY);
             addSessionInsert.Append(")");
 
-            _addSession = new MySqlCommand(addSessionInsert.ToString(), _connection);
+            _addSession = new MySqlCommand(addSessionInsert.ToString(), connection);
             _addSession.Parameters.Add(new MySqlParameter(DatabaseUtil.DATE_KEY, MySqlDbType.DateTime));
             _addSession.Parameters.Add(new MySqlParameter(DatabaseUtil.VERSION_KEY, MySqlDbType.String));
             _addSession.Parameters.Add(new MySqlParameter(DatabaseUtil.HOST_NAME_KEY, MySqlDbType.String));
@@ -108,7 +116,7 @@ namespace BWServerLogger.DAO
             sessionUpdate.Append("where id = ");
             sessionUpdate.Append(DatabaseUtil.SESSION_ID_KEY);
 
-            _updateSession = new MySqlCommand(sessionUpdate.ToString(), _connection);
+            _updateSession = new MySqlCommand(sessionUpdate.ToString(), connection);
             _updateSession.Parameters.Add(new MySqlParameter(DatabaseUtil.MAX_PLAYERS_KEY, MySqlDbType.Int32));
             _updateSession.Parameters.Add(new MySqlParameter(DatabaseUtil.MAX_PING_KEY, MySqlDbType.Int32));
             _updateSession.Parameters.Add(new MySqlParameter(DatabaseUtil.MIN_PING_KEY, MySqlDbType.Int32));

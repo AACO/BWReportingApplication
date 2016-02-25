@@ -17,24 +17,18 @@ using BWServerLogger.Util;
 
 namespace BWServerLogger.DAO
 {
-    public class PlayerDAO
+    public class PlayerDAO : BaseDAO
     {
-        private static readonly ILog logger = LogManager.GetLogger(typeof(PlayerDAO));
-
-        private Dictionary<PlayerSession,PlayerSession> _cachedPlayerSessions;
-        private MySqlConnection _connection;
+        private Dictionary<PlayerSession,PlayerSession> _cachedPlayerSessions; // refactor this, just map to name instead of hash code hack
         private MySqlCommand _getPlayerSession;
         private MySqlCommand _addPlayerSession;
         private MySqlCommand _addPlayer;
         private MySqlCommand _updatePlayerSession;
         private MySqlCommand _updatePlayer;
 
-
-        public PlayerDAO(MySqlConnection connection)
+        public PlayerDAO(MySqlConnection connection) : base(connection)
         {
-            _connection = connection;
             _cachedPlayerSessions = new Dictionary<PlayerSession, PlayerSession>();
-            SetupPreparedStatements();
         }
 
         public ISet<PlayerSession> GetOrCreatePlayerSessions(IList<Player> players, Session session)
@@ -79,7 +73,7 @@ namespace BWServerLogger.DAO
                             _addPlayerSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
                             _addPlayerSession.ExecuteNonQuery();
 
-                            playerSession.Id = DatabaseUtil.GetLastInsertedId(ref _connection);
+                            playerSession.Id = GetLastInsertedId();
                         }
                         else
                         {
@@ -96,13 +90,13 @@ namespace BWServerLogger.DAO
                         _addPlayer.Parameters[DatabaseUtil.HAS_CLAN_TAG_KEY].Value = player.HasClanTag;
                         _addPlayer.ExecuteNonQuery();
 
-                        playerSession.Player.Id = DatabaseUtil.GetLastInsertedId(ref _connection);
+                        playerSession.Player.Id = GetLastInsertedId();
 
                         _addPlayerSession.Parameters[DatabaseUtil.PLAYER_ID_KEY].Value = player.Id;
                         _addPlayerSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
                         _addPlayerSession.ExecuteNonQuery();
 
-                        playerSession.Id = DatabaseUtil.GetLastInsertedId(ref _connection);
+                        playerSession.Id = GetLastInsertedId();
                     }
                     _cachedPlayerSessions.Add(playerSession, playerSession);
                     playerSessions.Add(playerSession);
@@ -138,7 +132,17 @@ namespace BWServerLogger.DAO
             }
         }
 
-        private void SetupPreparedStatements()
+        protected override ISet<Column> GetColumns()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override string GetTable()
+        {
+            return "player";
+        }
+
+        protected override void SetupPreparedStatements(MySqlConnection connection)
         {
             StringBuilder getPlayerSessionSelect = new StringBuilder();
             getPlayerSessionSelect.Append("select p.id, p.has_clan_tag, ");
@@ -150,7 +154,7 @@ namespace BWServerLogger.DAO
             getPlayerSessionSelect.Append("where p.name = ");
             getPlayerSessionSelect.Append(DatabaseUtil.NAME_KEY);
 
-            _getPlayerSession = new MySqlCommand(getPlayerSessionSelect.ToString(), _connection);
+            _getPlayerSession = new MySqlCommand(getPlayerSessionSelect.ToString(), connection);
             _getPlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.NAME_KEY, MySqlDbType.String));
             _getPlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.SESSION_ID_KEY, MySqlDbType.Int32));
             _getPlayerSession.Prepare();
@@ -163,7 +167,7 @@ namespace BWServerLogger.DAO
             addPlayerInsert.Append(DatabaseUtil.HAS_CLAN_TAG_KEY);
             addPlayerInsert.Append(")");
 
-            _addPlayer = new MySqlCommand(addPlayerInsert.ToString(), _connection);
+            _addPlayer = new MySqlCommand(addPlayerInsert.ToString(), connection);
             _addPlayer.Parameters.Add(new MySqlParameter(DatabaseUtil.NAME_KEY, MySqlDbType.String));
             _addPlayer.Parameters.Add(new MySqlParameter(DatabaseUtil.HAS_CLAN_TAG_KEY, MySqlDbType.Bit));
             _addPlayer.Prepare();
@@ -176,7 +180,7 @@ namespace BWServerLogger.DAO
             addPlayerSessionInsert.Append(DatabaseUtil.SESSION_ID_KEY);
             addPlayerSessionInsert.Append(")");
 
-            _addPlayerSession = new MySqlCommand(addPlayerSessionInsert.ToString(), _connection);
+            _addPlayerSession = new MySqlCommand(addPlayerSessionInsert.ToString(), connection);
             _addPlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYER_ID_KEY, MySqlDbType.Int32));
             _addPlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.SESSION_ID_KEY, MySqlDbType.Int32));
             _addPlayerSession.Prepare();
@@ -191,8 +195,7 @@ namespace BWServerLogger.DAO
             playerSessionUpdate.Append("where id = ");
             playerSessionUpdate.Append(DatabaseUtil.PLAYER_TO_SESSION_ID_KEY);
 
-
-            _updatePlayerSession = new MySqlCommand(playerSessionUpdate.ToString(), _connection);
+            _updatePlayerSession = new MySqlCommand(playerSessionUpdate.ToString(), connection);
             _updatePlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.LENGTH_KEY, MySqlDbType.Int32));
             _updatePlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYED_KEY, MySqlDbType.Bit));
             _updatePlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYER_TO_SESSION_ID_KEY, MySqlDbType.Int32));
@@ -206,7 +209,7 @@ namespace BWServerLogger.DAO
             playerUpdate.Append("where id = ");
             playerUpdate.Append(DatabaseUtil.PLAYER_ID_KEY);
 
-            _updatePlayer = new MySqlCommand(playerUpdate.ToString(), _connection);
+            _updatePlayer = new MySqlCommand(playerUpdate.ToString(), connection);
             _updatePlayer.Parameters.Add(new MySqlParameter(DatabaseUtil.HAS_CLAN_TAG_KEY, MySqlDbType.Bit));
             _updatePlayer.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYER_ID_KEY, MySqlDbType.Int32));
             _updatePlayer.Prepare();

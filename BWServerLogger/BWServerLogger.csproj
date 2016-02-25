@@ -95,12 +95,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DAO\BaseDAO.cs" />
     <Compile Include="DAO\MissionDAO.cs" />
     <Compile Include="DAO\PlayerDAO.cs" />
     <Compile Include="DAO\ScheduleDAO.cs" />
     <Compile Include="DAO\SessionDAO.cs" />
     <Compile Include="Exceptions\NoScheduleException.cs" />
     <Compile Include="Exceptions\NoLastInsertedIdException.cs" />
+    <Compile Include="Exceptions\SchemaMismatchException.cs" />
+    <Compile Include="Exceptions\NoSchemaException.cs" />
     <Compile Include="Exceptions\NoServerInfoException.cs" />
     <Compile Include="Job\ReportingJob.cs" />
     <Compile Include="MainWindow.cs">
@@ -110,6 +113,8 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="LoggerUI.cs" />
+    <Compile Include="Model\IndexType.cs" />
+    <Compile Include="Model\Column.cs" />
     <Compile Include="Model\BaseDatabase.cs" />
     <Compile Include="Model\Map.cs" />
     <Compile Include="Model\Mission.cs" />
