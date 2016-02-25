@@ -21,15 +21,12 @@ D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\BWServerLogger.pdb
 D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\log4net.dll
 D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\MySql.Data.dll
 D:\GitHub\BWReportingApplication\BWServerLogger\bin\Release\log4net.xml
+C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\bin\Release\log-config.xml
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\bin\Release\BWServerLogger.exe.config
-C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.exe
-C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.pdb
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\bin\Release\BWServerLogger.exe
-C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\bin\Release\BWServerLogger.pdb
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\bin\Release\log4net.dll
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\bin\Release\MySql.Data.dll
-C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\bin\Release\log4net.xml
-C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.csprojResolveAssemblyReference.cache
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.MainWindow.resources
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.Properties.Resources.resources
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.csproj.GenerateResource.Cache
+C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Release\BWServerLogger.exe
