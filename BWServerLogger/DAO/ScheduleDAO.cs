@@ -69,14 +69,35 @@ namespace BWServerLogger.DAO
             _removeScheduleItem.ExecuteNonQuery();
         }
 
-        protected override string GetTable()
+        protected override IDictionary<String, ISet<Column>> GetRequiredSchema()
         {
-            throw new NotImplementedException();
-        }
+            Dictionary<String, ISet<Column>> returnMap = new Dictionary<String, ISet<Column>>();
 
-        protected override ISet<Column> GetColumns()
-        {
-            throw new NotImplementedException();
+            // define schedule columns
+            HashSet<Column> columns = new HashSet<Column>();
+            columns.Add(new Column("id",
+                                   "int(10) unsigned",
+                                   "NO",
+                                   "PRI",
+                                   null,
+                                   "auto_increment"));
+
+            columns.Add(new Column("day_of_the_week",
+                                   "enum('SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY')",
+                                   "NO",
+                                   "MUL",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("time_of_day",
+                                   "time",
+                                   "NO",
+                                   "",
+                                   null,
+                                   ""));
+            returnMap.Add("schedule", columns);
+
+            return returnMap;
         }
 
         protected override void SetupPreparedStatements(MySqlConnection connection)

@@ -81,6 +81,8 @@ namespace BWServerLogger.Service
 
         private Session SetUpSession(string host, int port)
         {
+            Session returnSession = null;
+
             // initial info grab
             ServerInfo serverInfo = _serverInfoService.GetServerInfo(host, port);
 
@@ -95,10 +97,10 @@ namespace BWServerLogger.Service
                 session.MaxPlayers = serverInfo.NumPlayers;
                 session = _sessionDAO.CreateSession(session);
 
-                return session;
+                returnSession = session;
             }
 
-            return null;
+            return returnSession;
         }
 
         private Session UpdateInfo(string host, int port, Session session)
@@ -108,8 +110,9 @@ namespace BWServerLogger.Service
             if (IsServerRunning(serverInfo.ServerState))
             {
                 UpdateSessionData(session, serverInfo);
-                UpdatePlayerData(session, serverInfo);
-                UpdateMissionData(session, serverInfo);
+                MissionSession missionSession = UpdateMissionData(session, serverInfo);
+                UpdatePlayerData(session, serverInfo, missionSession);
+                
             }
             return session;
         }
@@ -140,7 +143,7 @@ namespace BWServerLogger.Service
             }
         }
 
-        private void UpdatePlayerData(Session session, ServerInfo serverInfo)
+        private void UpdatePlayerData(Session session, ServerInfo serverInfo, MissionSession missionSession)
         {
             ISet<PlayerSession> playerSessions = _playerDAO.GetOrCreatePlayerSessions(serverInfo.Players, session);
 
@@ -157,7 +160,7 @@ namespace BWServerLogger.Service
             _playerDAO.UpdatePlayerSessions(playerSessions);
         }
 
-        private void UpdateMissionData(Session session, ServerInfo serverInfo)
+        private MissionSession UpdateMissionData(Session session, ServerInfo serverInfo)
         {
             MissionSession missionSession = _missionDAO.GetOrCreateMissionSession(serverInfo.MapName, serverInfo.Mission, session);
 
@@ -170,6 +173,8 @@ namespace BWServerLogger.Service
             }
 
             _missionDAO.UpdateMissionSession(missionSession);
+
+            return missionSession;
         }
 
         private bool IsServerRunning(int serverState)

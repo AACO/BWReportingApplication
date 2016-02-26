@@ -146,14 +146,160 @@ namespace BWServerLogger.DAO
             return mapId;
         }
 
-        protected override ISet<Column> GetColumns()
+        protected override IDictionary<String, ISet<Column>> GetRequiredSchema()
         {
-            return new HashSet<Column>();
-        }
+            Dictionary<String, ISet<Column>> returnMap = new Dictionary<String, ISet<Column>>();
 
-        protected override string GetTable()
-        {
-            return "mission";
+            // define mission columns
+            HashSet<Column> columns = new HashSet<Column>();
+            columns.Add(new Column("id",
+                                   "int(10) unsigned",
+                                   "NO",
+                                   "PRI",
+                                   null,
+                                   "auto_increment"));
+
+            columns.Add(new Column("name",
+                                   "varchar(255)",
+                                   "NO",
+                                   "UNI",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("map_id",
+                                   "int(10) unsigned",
+                                   "NO",
+                                   "MUL",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("created_on",
+                                   "datetime",
+                                   "NO",
+                                   "",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("updated_on",
+                                   "datetime",
+                                   "NO",
+                                   "",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("description",
+                                   "text",
+                                   "NO",
+                                   "",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("mode",
+                                   "enum('Adversarial','COOP','Zeus','After Hours')",
+                                   "NO",
+                                   "",
+                                   "Adversarial",
+                                   ""));
+
+            columns.Add(new Column("target_player_count",
+                                   "int(10) unsigned",
+                                   "NO",
+                                   "",
+                                   "0",
+                                   ""));
+
+            columns.Add(new Column("framework_id",
+                                    "int(10)",
+                                    "YES",
+                                    "MUL",
+                                    null,
+                                    ""));
+
+            columns.Add(new Column("tested",
+                                    "bit(1)",
+                                    "NO",
+                                    "",
+                                    "b'0'",
+                                    ""));
+
+            columns.Add(new Column("replayable",
+                                    "bit(1)",
+                                    "NO",
+                                    "",
+                                    "b'0'",
+                                    ""));
+            returnMap.Add("mission", columns);
+
+            // define mission to session columns
+            columns = new HashSet<Column>();
+            columns.Add(new Column("id",
+                                   "int(10) unsigned",
+                                   "NO",
+                                   "PRI",
+                                   null,
+                                   "auto_increment"));
+
+            columns.Add(new Column("mission_id",
+                                   "int(10) unsigned",
+                                   "NO",
+                                   "MUL",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("session_id",
+                                   "int(10) unsigned",
+                                   "NO",
+                                   "MUL",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("length",
+                                   "int(10) unsigned",
+                                   "NO",
+                                   "",
+                                   "0",
+                                   ""));
+
+            columns.Add(new Column("played",
+                                   "bit(1)",
+                                   "NO",
+                                   "",
+                                   "b'0'",
+                                   ""));
+            returnMap.Add("mission_to_session", columns);
+
+            // define map columns
+            columns = new HashSet<Column>();
+            columns.Add(new Column("id",
+                                   "int(10) unsigned",
+                                   "NO",
+                                   "PRI",
+                                   null,
+                                   "auto_increment"));
+
+            columns.Add(new Column("friendly_name",
+                                   "varchar(150)",
+                                   "NO",
+                                   "UNI",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("name",
+                                   "varchar(150)",
+                                   "NO",
+                                   "UNI",
+                                   null,
+                                   ""));
+
+            columns.Add(new Column("active",
+                                   "bit(1)",
+                                   "NO",
+                                   "",
+                                   "b'1'",
+                                   ""));
+            returnMap.Add("map", columns);
+
+            return returnMap;
         }
 
         protected override void SetupPreparedStatements(MySqlConnection connection)
@@ -212,14 +358,12 @@ namespace BWServerLogger.DAO
             _addMap.Prepare();
 
             StringBuilder addMissionInsert = new StringBuilder();
-            addMissionInsert.Append("insert into mission (name, map_id, description, notes, min_players, max_players)");
+            addMissionInsert.Append("insert into mission (name, map_id, description, target_player_count)");
             addMissionInsert.Append("values (");
             addMissionInsert.Append(DatabaseUtil.NAME_KEY);
             addMissionInsert.Append(", ");
             addMissionInsert.Append(DatabaseUtil.MAP_ID_KEY);
-            addMissionInsert.Append(", '', '', ");
-            addMissionInsert.Append(DatabaseUtil.DEFAULT_PLAYER_COUNT);
-            addMissionInsert.Append(", ");
+            addMissionInsert.Append(", '', ");
             addMissionInsert.Append(DatabaseUtil.DEFAULT_PLAYER_COUNT);
             addMissionInsert.Append(")");
 
