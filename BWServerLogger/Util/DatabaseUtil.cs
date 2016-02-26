@@ -46,8 +46,6 @@ namespace BWServerLogger.Util
         public const string DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
         public const string TIME_FORMAT = "HH:mm:ss";
 
-        public const string GET_LAST_ID_QUERY = "select last_insert_id()";
-
         public static MySqlConnection OpenDataSource()
         {
             // build connection string (using "AppSettings" instead of "ConnectionStrings" to allow easier password en/decryption)
@@ -71,28 +69,6 @@ namespace BWServerLogger.Util
             MySqlConnection connection = new MySqlConnection(connectionString.ToString());
             connection.Open();
             return connection;
-        }
-
-        public static Int32 GetLastInsertedId(ref MySqlConnection connection)
-        {
-            string getLastInsertedIdSelect = GET_LAST_ID_QUERY;
-
-            MySqlCommand getLastInsertedId = new MySqlCommand(getLastInsertedIdSelect, connection);
-
-            MySqlDataReader lastInsertedIdResult = getLastInsertedId.ExecuteReader();
-
-            if (lastInsertedIdResult.HasRows)
-            {
-                lastInsertedIdResult.Read();
-                Int32 id = lastInsertedIdResult.GetInt32(0);
-                lastInsertedIdResult.Close();
-
-                return id;
-            }
-            else
-            {
-                throw new NoLastInsertedIdException("Last inserted ID query failed, aborting");
-            }
         }
 
         public static string GetMySQLPassword()

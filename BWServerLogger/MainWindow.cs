@@ -30,22 +30,11 @@ namespace BWServerLogger
 
         private bool _closeThreads = true;
         private Thread _reportingThread;
-        private MySqlConnection _connection;
-        private ScheduleDAO _scheduleDAO;
 
         public MainWindow()
         {
-            ConstructDataItemsIfNeeded();
-            ConstructReportingThread();
+            StartScheduleThread();
             InitializeComponent();
-        }
-
-        ~MainWindow()
-        {
-            if (_connection != null)
-            {
-                _connection.Close();
-            }
         }
 
         private void CheckThreadStatuses()
@@ -61,7 +50,7 @@ namespace BWServerLogger
                 this.ScheduleInput.Text = "Start Scheduler";
             }
 
-            if (IsReportRunning())
+            if (IsReportRunning()) //do this better
             {
                 this.ReportStatus.BackColor = Color.Green;
                 this.ReportingInput.Text = "Stop Reporting";
@@ -73,33 +62,29 @@ namespace BWServerLogger
             }
         }
 
-        private void ConstructDataItemsIfNeeded()
-        {
-            if (_connection == null)
-            {
-
-                try
-                {
-                    _connection = DatabaseUtil.OpenDataSource();
-                    _scheduleDAO = new ScheduleDAO(_connection);
-                }
-                catch (Exception e)
-                {
-                    _logger.Warn("Could not aquire database connection", e);
-                }
-            }
-        }
-
-        private void ConstructReportingThread()
+        private void StartScheduleThread()
         {
             try
             {
-                _reportingThread = new Thread(new ReportingJob(_scheduleDAO).StartJob);
+                _reportingThread = new Thread(new ReportingJob().StartJob);
                 _reportingThread.Start();
             }
             catch (Exception e)
             {
                 _logger.Error("Scheduler could not be constructed or started", e);
+            }
+        }
+
+        private void ForceReportRun()
+        {
+            try
+            {
+                _reportingThread = new Thread(new ReportingJob().ForceJobRun);
+                _reportingThread.Start();
+            }
+            catch (Exception e)
+            {
+                _logger.Error("Could not force report to run", e);
             }
         }
 
@@ -122,19 +107,27 @@ namespace BWServerLogger
 
             // set up scheduler
             this.scheduleBindingSource.Clear();
+
+            MySqlConnection connection = null;
             try
             {
-                if (_scheduleDAO != null)
+                connection = DatabaseUtil.OpenDataSource();
+                
+                foreach (Schedule scheduleItem in new ScheduleDAO(connection).GetScheduleItems())
                 {
-                    foreach (Schedule scheduleItem in _scheduleDAO.GetScheduleItems())
-                    {
-                        this.scheduleBindingSource.Add(scheduleItem);
-                    }
+                    this.scheduleBindingSource.Add(scheduleItem);
                 }
             }
             catch (MySqlException ex)
             {
                 _logger.Error("Problem getting schedule items", ex);
+            }
+            finally
+            {
+                if (connection != null)
+                {
+                    connection.Close();
+                }
             }
         }
 
@@ -170,6 +163,11 @@ namespace BWServerLogger
 
         private void Save_Click(object sender, EventArgs e)
         {
+            if (!IsReportRunning())
+            {
+                StopReportingJobThread();
+            }
+
             Properties.Settings.Default.mySQLServerAddress = this.MySQLServerAddressInput.Text;
             Properties.Settings.Default.mySQLServerPort = Convert.ToString(this.MySQLServerPortInput.Value);
             Properties.Settings.Default.mySQLServerDatabase = this.MySQLServerDatabaseInput.Text;
@@ -184,7 +182,12 @@ namespace BWServerLogger
             Properties.Settings.Default.retryTimeLimit = ToMilliseconds(this.serverReconnectLimitInput.Value);
 
             Properties.Settings.Default.Save();
-            ConstructDataItemsIfNeeded();
+
+            if (!IsScheduleRunning())
+            {
+                StartReportingJobThread();
+            }
+
             MainWindow_Load(sender, e);
         }
 
@@ -208,7 +211,23 @@ namespace BWServerLogger
                     StopReportingJobThread();
                 }
 
-                _scheduleDAO.SaveScheduleItem((Schedule)this.scheduleBindingSource.Current);
+                MySqlConnection connection = null;
+                try
+                {
+                    connection = DatabaseUtil.OpenDataSource();
+                    new ScheduleDAO(connection).SaveScheduleItem((Schedule)this.scheduleBindingSource.Current);
+                }
+                catch (MySqlException ex)
+                {
+                    _logger.Error("Problem saving schedule items", ex);
+                }
+                finally
+                {
+                    if (connection != null)
+                    {
+                        connection.Close();
+                    }
+                }
 
                 if (!IsScheduleRunning())
                 {
@@ -226,7 +245,7 @@ namespace BWServerLogger
         {
             if (_reportingThread == null)
             {
-                ConstructReportingThread();
+                StartScheduleThread();
             }
         }
 
@@ -270,7 +289,23 @@ namespace BWServerLogger
                     StopReportingJobThread();
                 }
 
-                _scheduleDAO.RemoveScheduleItem((Schedule)e.Row.DataBoundItem);
+                MySqlConnection connection = null;
+                try
+                {
+                    connection = DatabaseUtil.OpenDataSource();
+                    new ScheduleDAO(connection).RemoveScheduleItem((Schedule)e.Row.DataBoundItem);
+                }
+                catch (MySqlException ex)
+                {
+                    _logger.Error("Problem removing schedule items", ex);
+                }
+                finally
+                {
+                    if (connection != null)
+                    {
+                        connection.Close();
+                    }
+                }
 
                 if (!IsScheduleRunning())
                 {
@@ -296,25 +331,21 @@ namespace BWServerLogger
 
         private void ReportingInput_Click(object sender, EventArgs e)
         {
-            if (IsReportRunning())
+            if (_reportingThread == null) // Job has been halted
             {
-                StopReportingJobThread();
-
-                try
-                {
-                    _reportingThread = new Thread(new ReportingJob(_scheduleDAO).ForceJobRun);
-                    _reportingThread.Start();
-                }
-                catch(Exception ex)
-                {
-                    _logger.Error("Cannot force start a reporting job", ex);
-                }
+                _reportingThread = new Thread(new ReportingJob().ForceJobRun);
+                _reportingThread.Start();
             }
             else
             {
-                _logger.ErrorFormat("Cannot force start a reporting job. Reporting thread: {0}, thread status {1}",
-                    _reportingThread,
-                    _reportingThread == null ? "Null" : _reportingThread.ThreadState.ToString());
+                if (_reportingThread.ThreadState == ThreadState.Running) // Report running
+                {
+                    StopReportingJobThread();
+                }
+                else // waiting for next report run
+                {
+                    ForceReportRun();
+                }
             }
         }
 

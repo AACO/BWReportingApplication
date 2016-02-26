@@ -1,5 +1,7 @@
 ﻿using log4net;
 
+using MySql.Data.MySqlClient;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +20,6 @@ namespace BWServerLogger.Job
     class ReportingJob
     {
         private static readonly ILog _logger = LogManager.GetLogger(typeof(ReportingJob));
-        private ScheduleDAO _scheduleDAO;
 
         public string Name
         {
@@ -28,14 +29,13 @@ namespace BWServerLogger.Job
             }
         }
 
-        public ReportingJob(ScheduleDAO scheduleDAO)
+        public ReportingJob()
         {
-            _scheduleDAO = scheduleDAO;
         }
 
         public void StartJob()
         {
-            DoJob(true);
+            DoJob(false);
         }
 
         public void ForceJobRun()
@@ -63,7 +63,15 @@ namespace BWServerLogger.Job
             }
             catch (Exception e)
             {
-                _logger.Error("Problem running job (possible interrupt?)", e);
+                if (e is ThreadAbortException)
+                {
+                    _logger.Info("Reporting Job Thread was aborted.");
+                }
+                else
+                {
+                    _logger.Error("Problem running job.", e);
+                }
+                
             }
         }
 
@@ -71,36 +79,35 @@ namespace BWServerLogger.Job
         {
             // get "now" date variables
             DateTime now = DateTime.Now;
-            double nowMS = now.TimeOfDay.Milliseconds;
+            double nowMS = now.TimeOfDay.TotalMilliseconds;
             int nowDayOfWeek = (int)now.DayOfWeek;
 
             // set up loop variables
             int minDayOfWeek = -1;
             double minMS = -1;
 
-            foreach (Schedule schedule in _scheduleDAO.GetScheduleItems())
+            MySqlConnection connection = DatabaseUtil.OpenDataSource();
+            foreach (Schedule schedule in new ScheduleDAO(connection).GetScheduleItems())
             {
                 // get "scheduled" date variables
                 int dayOfWeek = (int)schedule.DayOfTheWeek;
-                double ms = schedule.TimeOfDay.Milliseconds;
+                double ms = schedule.TimeOfDay.TotalMilliseconds;
 
                 // ensure every item compared is in the future or right now
-                if (dayOfWeek > nowDayOfWeek || (dayOfWeek == nowDayOfWeek && ms < nowMS))
+                if (dayOfWeek < nowDayOfWeek || (dayOfWeek == nowDayOfWeek && ms < nowMS))
                 {
                     dayOfWeek += 7;
                 }
 
                 // if min DoW is not set, or if the scheduled DoW is less than the min, check MS
-                if (minDayOfWeek < 0 || minDayOfWeek > dayOfWeek)
+                if (minDayOfWeek < 0 || (minDayOfWeek > dayOfWeek && minMS > ms))
                 {
-                    // if min ms is not set, or if the scheduled ms is less than the min, set the min values
-                    if (minMS < 0 || ms > minMS)
-                    {
-                        minDayOfWeek = dayOfWeek;
-                        minMS = ms;
-                    }
+                    minDayOfWeek = dayOfWeek;
+                    minMS = ms;
                 }
             }
+
+            connection.Close();
 
             if (minMS < 0 || minDayOfWeek < 0)
             {
