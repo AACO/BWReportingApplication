@@ -102,6 +102,7 @@
     <Compile Include="DAO\SessionDAO.cs" />
     <Compile Include="Exceptions\NoScheduleException.cs" />
     <Compile Include="Exceptions\NoLastInsertedIdException.cs" />
+    <Compile Include="Exceptions\NoRetriesLeftException.cs" />
     <Compile Include="Exceptions\SchemaMismatchException.cs" />
     <Compile Include="Exceptions\NoSchemaException.cs" />
     <Compile Include="Exceptions\NoServerInfoException.cs" />

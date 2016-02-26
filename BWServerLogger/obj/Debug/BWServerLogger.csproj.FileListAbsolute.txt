@@ -17,3 +17,4 @@ C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Deb
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.csproj.GenerateResource.Cache
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.exe
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.pdb
+C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.csprojResolveAssemblyReference.cache

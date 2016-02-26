@@ -69,7 +69,7 @@ namespace BWServerLogger.Job
                 }
                 else
                 {
-                    _logger.Error("Problem running job (possible interrupt?)", e);
+                    _logger.Error("Problem running job.", e);
                 }
                 
             }
@@ -100,14 +100,10 @@ namespace BWServerLogger.Job
                 }
 
                 // if min DoW is not set, or if the scheduled DoW is less than the min, check MS
-                if (minDayOfWeek < 0 || minDayOfWeek > dayOfWeek)
+                if (minDayOfWeek < 0 || (minDayOfWeek > dayOfWeek && minMS > ms))
                 {
-                    // if min ms is not set, or if the scheduled ms is less than the min, set the min values
-                    if (minMS < 0 || ms > minMS)
-                    {
-                        minDayOfWeek = dayOfWeek;
-                        minMS = ms;
-                    }
+                    minDayOfWeek = dayOfWeek;
+                    minMS = ms;
                 }
             }
 

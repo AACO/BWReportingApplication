@@ -163,6 +163,11 @@ namespace BWServerLogger
 
         private void Save_Click(object sender, EventArgs e)
         {
+            if (!IsReportRunning())
+            {
+                StopReportingJobThread();
+            }
+
             Properties.Settings.Default.mySQLServerAddress = this.MySQLServerAddressInput.Text;
             Properties.Settings.Default.mySQLServerPort = Convert.ToString(this.MySQLServerPortInput.Value);
             Properties.Settings.Default.mySQLServerDatabase = this.MySQLServerDatabaseInput.Text;
@@ -177,6 +182,12 @@ namespace BWServerLogger
             Properties.Settings.Default.retryTimeLimit = ToMilliseconds(this.serverReconnectLimitInput.Value);
 
             Properties.Settings.Default.Save();
+
+            if (!IsScheduleRunning())
+            {
+                StartReportingJobThread();
+            }
+
             MainWindow_Load(sender, e);
         }
 
