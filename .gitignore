@@ -1,5 +1,5 @@
 #ignore the BIN folder
 bin/
 
-#ignore the MS VCS folder
-.vcs/
+#ignore the MS VS folder
+.vs/
