@@ -1,40 +1,46 @@
-﻿using MySql.Data;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Globalization;
 
 using BWServerLogger.Model;
 using BWServerLogger.Util;
 
-namespace BWServerLogger.DAO
-{
-    public class ScheduleDAO : BaseDAO
-    {
+namespace BWServerLogger.DAO {
+    public class ScheduleDAO : BaseDAO {
         private MySqlCommand _addScheduleItem;
         private MySqlCommand _getScheduleItems;
         private MySqlCommand _removeScheduleItem;
         private MySqlCommand _updateScheduleItem;
 
-        public ScheduleDAO(MySqlConnection connection) : base (connection)
-        {
+        public ScheduleDAO(MySqlConnection connection) : base(connection) {
         }
 
-        public ISet<Schedule> GetScheduleItems()
-        {
+        protected override void Dispose(bool disposing) {
+            base.Dispose(disposing);
+            if (disposing) {
+                if (_addScheduleItem != null) {
+                    _addScheduleItem.Dispose();
+                }
+                if (_getScheduleItems != null) {
+                    _getScheduleItems.Dispose();
+                }
+                if (_removeScheduleItem != null) {
+                    _removeScheduleItem.Dispose();
+                }
+                if (_updateScheduleItem != null) {
+                    _updateScheduleItem.Dispose();
+                }
+            }
+        }
+
+        public ISet<Schedule> GetScheduleItems() {
             ISet<Schedule> scheduleItems = new HashSet<Schedule>();
 
             MySqlDataReader getScheduleItemsResult = _getScheduleItems.ExecuteReader();
 
-            if (getScheduleItemsResult.HasRows)
-            {
-                while (getScheduleItemsResult.Read())
-                {
+            if (getScheduleItemsResult.HasRows) {
+                while (getScheduleItemsResult.Read()) {
                     scheduleItems.Add(new Schedule(getScheduleItemsResult.GetInt32(0),
                                                    getScheduleItemsResult.GetInt32(1),
                                                    getScheduleItemsResult.GetString(2)));
@@ -46,16 +52,12 @@ namespace BWServerLogger.DAO
             return scheduleItems;
         }
 
-        public void SaveScheduleItem(Schedule scheduleItem)
-        {
-            if (scheduleItem.Id < 1)
-            {
+        public void SaveScheduleItem(Schedule scheduleItem) {
+            if (scheduleItem.Id < 1) {
                 _addScheduleItem.Parameters[DatabaseUtil.DAY_OF_THE_WEEK_KEY].Value = scheduleItem.DayOfTheWeek + 1;
                 _addScheduleItem.Parameters[DatabaseUtil.TIME_OF_DAY_KEY].Value = scheduleItem.TimeOfDay.ToString();
                 _addScheduleItem.ExecuteNonQuery();
-            }
-            else
-            {
+            } else {
                 _updateScheduleItem.Parameters[DatabaseUtil.DAY_OF_THE_WEEK_KEY].Value = scheduleItem.DayOfTheWeek + 1;
                 _updateScheduleItem.Parameters[DatabaseUtil.TIME_OF_DAY_KEY].Value = scheduleItem.TimeOfDay.ToString();
                 _updateScheduleItem.Parameters[DatabaseUtil.SCHEDULE_ID_KEY].Value = scheduleItem.Id;
@@ -63,15 +65,13 @@ namespace BWServerLogger.DAO
             }
         }
 
-        public void RemoveScheduleItem(Schedule scheduleItem)
-        {
+        public void RemoveScheduleItem(Schedule scheduleItem) {
             _removeScheduleItem.Parameters[DatabaseUtil.SCHEDULE_ID_KEY].Value = scheduleItem.Id;
             _removeScheduleItem.ExecuteNonQuery();
         }
 
-        protected override IDictionary<String, ISet<Column>> GetRequiredSchema()
-        {
-            Dictionary<String, ISet<Column>> returnMap = new Dictionary<String, ISet<Column>>();
+        protected override IDictionary<string, ISet<Column>> GetRequiredSchema() {
+            Dictionary<string, ISet<Column>> returnMap = new Dictionary<string, ISet<Column>>();
 
             // define schedule columns
             HashSet<Column> columns = new HashSet<Column>();
@@ -100,8 +100,7 @@ namespace BWServerLogger.DAO
             return returnMap;
         }
 
-        protected override void SetupPreparedStatements(MySqlConnection connection)
-        {
+        protected override void SetupPreparedStatements(MySqlConnection connection) {
             StringBuilder getScheduleItemsSelect = new StringBuilder();
             getScheduleItemsSelect.Append("select id, day_of_the_week-1, time_of_day ");
             getScheduleItemsSelect.Append("from schedule ");

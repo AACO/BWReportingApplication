@@ -1,23 +1,14 @@
 ﻿using log4net;
 
-using MySql.Data;
 using MySql.Data.MySqlClient;
 
 using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
 
-using BWServerLogger.Exceptions;
-
-namespace BWServerLogger.Util
-{
-    class DatabaseUtil
-    {
+namespace BWServerLogger.Util {
+    class DatabaseUtil {
         private static readonly ILog logger = LogManager.GetLogger(typeof(DatabaseUtil));
 
         public const string NAME_KEY = "@name";
@@ -46,8 +37,7 @@ namespace BWServerLogger.Util
         public const string DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
         public const string TIME_FORMAT = "HH:mm:ss";
 
-        public static MySqlConnection OpenDataSource()
-        {
+        public static MySqlConnection OpenDataSource() {
             // build connection string (using "AppSettings" instead of "ConnectionStrings" to allow easier password en/decryption)
             StringBuilder connectionString = new StringBuilder();
             connectionString.Append("server=");
@@ -71,19 +61,16 @@ namespace BWServerLogger.Util
             return connection;
         }
 
-        public static string GetMySQLPassword()
-        {
+        public static string GetMySQLPassword() {
             // Declare the string used to hold the decrypted text. 
             string plainText = "";
-            try
-            {
+            try {
                 byte[] encrypted = Properties.Settings.Default.mySQLServerPassword;
                 byte[] key = Properties.Settings.Default.key;
                 byte[] iv = Properties.Settings.Default.iv;
 
                 // Create an AesManaged object with the specified key and IV.
-                using (AesManaged aes = new AesManaged())
-                {
+                using (AesManaged aes = new AesManaged()) {
                     aes.Key = key;
                     aes.IV = iv;
 
@@ -91,12 +78,9 @@ namespace BWServerLogger.Util
                     ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
 
                     // Create the streams used for decryption. 
-                    using (MemoryStream msDecrypt = new MemoryStream(encrypted))
-                    {
-                        using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
-                        {
-                            using (StreamReader srDecrypt = new StreamReader(csDecrypt))
-                            {
+                    using (MemoryStream msDecrypt = new MemoryStream(encrypted)) {
+                        using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read)) {
+                            using (StreamReader srDecrypt = new StreamReader(csDecrypt)) {
                                 // Read the decrypted bytes from the decrypting stream and place them in a string.
                                 plainText = srDecrypt.ReadToEnd();
                             }
@@ -104,32 +88,24 @@ namespace BWServerLogger.Util
                     }
 
                 }
-                
-            }
-            catch (Exception e)
-            {
+
+            } catch (Exception e) {
                 logger.Error("Error decrypting a value, returning empty string", e);
             }
             return plainText;
         }
 
-        public static void SetMySQLPassword(string password)
-        {
-            try
-            {
+        public static void SetMySQLPassword(string password) {
+            try {
                 byte[] encrypted;
-                using (AesManaged aes = new AesManaged())
-                {
+                using (AesManaged aes = new AesManaged()) {
                     // Create a encrytor to perform the stream transform.
                     ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
 
                     // Create the streams used for encryption. 
-                    using (MemoryStream msEncrypt = new MemoryStream())
-                    {
-                        using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                        {
-                            using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
-                            {
+                    using (MemoryStream msEncrypt = new MemoryStream()) {
+                        using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write)) {
+                            using (StreamWriter swEncrypt = new StreamWriter(csEncrypt)) {
                                 //Write all data to the stream.
                                 swEncrypt.Write(password);
                             }
@@ -137,8 +113,7 @@ namespace BWServerLogger.Util
                         }
                     }
 
-                    if (encrypted == null)
-                    {
+                    if (encrypted == null) {
                         throw new ArgumentNullException("The text did not get encrypted");
                     }
 
@@ -147,9 +122,7 @@ namespace BWServerLogger.Util
                     Properties.Settings.Default.iv = aes.IV;
                     Properties.Settings.Default.Save();
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 logger.Error("Error encrypting a value", e);
             }
         }

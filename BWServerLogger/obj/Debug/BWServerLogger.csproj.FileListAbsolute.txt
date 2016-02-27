@@ -18,3 +18,15 @@ C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Deb
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.exe
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.pdb
 C:\Users\mruffner\Documents\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.csprojResolveAssemblyReference.cache
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Debug\log-config.xml
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Debug\BWServerLogger.exe.config
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Debug\BWServerLogger.exe
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Debug\BWServerLogger.pdb
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Debug\log4net.dll
+D:\GitHub\BWReportingApplication\BWServerLogger\bin\Debug\MySql.Data.dll
+D:\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.csprojResolveAssemblyReference.cache
+D:\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.MainWindow.resources
+D:\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.Properties.Resources.resources
+D:\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.csproj.GenerateResource.Cache
+D:\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.exe
+D:\GitHub\BWReportingApplication\BWServerLogger\obj\Debug\BWServerLogger.pdb

@@ -1,72 +1,73 @@
-﻿using log4net;
+﻿using MySql.Data.MySqlClient;
 
-using MySql.Data;
-using MySql.Data.MySqlClient;
-
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Globalization;
 
-using BWServerLogger.Exceptions;
 using BWServerLogger.Model;
 using BWServerLogger.Util;
 
-namespace BWServerLogger.DAO
-{
-    public class PlayerDAO : BaseDAO
-    {
-        private Dictionary<PlayerSession,PlayerSession> _cachedPlayerSessions; // refactor this, just map to name instead of hash code hack
+namespace BWServerLogger.DAO {
+    public class PlayerDAO : BaseDAO {
+        private Dictionary<PlayerSession, PlayerSession> _cachedPlayerSessions; // refactor this, just map to name instead of hash code hack
         private MySqlCommand _getPlayerSession;
         private MySqlCommand _addPlayerSession;
         private MySqlCommand _addPlayer;
         private MySqlCommand _updatePlayerSession;
         private MySqlCommand _updatePlayer;
 
-        public PlayerDAO(MySqlConnection connection) : base(connection)
-        {
+        public PlayerDAO(MySqlConnection connection) : base(connection) {
             _cachedPlayerSessions = new Dictionary<PlayerSession, PlayerSession>();
         }
 
-        public ISet<PlayerSession> GetOrCreatePlayerSessions(IList<Player> players, Session session)
-        {
+        protected override void Dispose(bool disposing) {
+            base.Dispose(disposing);
+            if (disposing) {
+                if (_getPlayerSession != null) {
+                    _getPlayerSession.Dispose();
+                }
+                if (_addPlayerSession != null) {
+                    _addPlayerSession.Dispose();
+                }
+                if (_addPlayer != null) {
+                    _addPlayer.Dispose();
+                }
+                if (_updatePlayerSession != null) {
+                    _updatePlayerSession.Dispose();
+                }
+                if (_updatePlayer != null) {
+                    _updatePlayer.Dispose();
+                }
+            }
+        }
+
+        public ISet<PlayerSession> GetOrCreatePlayerSessions(IList<Player> players, Session session) {
             ISet<PlayerSession> playerSessions = new HashSet<PlayerSession>();
 
-            foreach (Player player in players)
-            {
+            foreach (Player player in players) {
                 PlayerSession playerSession = new PlayerSession();
                 playerSession.Player = player;
                 playerSession.Session = session;
 
-                if (_cachedPlayerSessions.ContainsKey(playerSession))
-                {
+                if (_cachedPlayerSessions.ContainsKey(playerSession)) {
                     PlayerSession cachedPlayerSesion = new PlayerSession();
                     _cachedPlayerSessions.TryGetValue(playerSession, out cachedPlayerSesion);
                     playerSessions.Add(cachedPlayerSesion);
-                }
-                else
-                {
+                } else {
 
                     _getPlayerSession.Parameters[DatabaseUtil.NAME_KEY].Value = player.Name;
                     _getPlayerSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
 
                     MySqlDataReader getPlayerResult = _getPlayerSession.ExecuteReader();
 
-                    if (getPlayerResult.HasRows)
-                    {
+                    if (getPlayerResult.HasRows) {
                         getPlayerResult.Read();
                         playerSession.Player.Id = getPlayerResult.GetInt32(0);
 
-                        if (getPlayerResult.GetBoolean(1) != playerSession.Player.HasClanTag)
-                        {
+                        if (getPlayerResult.GetBoolean(1) != playerSession.Player.HasClanTag) {
                             playerSession.Player.Updated = true;
                         }
 
-                        if (getPlayerResult.IsDBNull(2))
-                        {
+                        if (getPlayerResult.IsDBNull(2)) {
                             getPlayerResult.Close();
 
                             _addPlayerSession.Parameters[DatabaseUtil.PLAYER_ID_KEY].Value = playerSession.Player.Id;
@@ -74,17 +75,13 @@ namespace BWServerLogger.DAO
                             _addPlayerSession.ExecuteNonQuery();
 
                             playerSession.Id = GetLastInsertedId();
-                        }
-                        else
-                        {
+                        } else {
                             playerSession.Id = getPlayerResult.GetInt32(2);
                             playerSession.Length = getPlayerResult.GetInt32(3);
                             playerSession.Played = getPlayerResult.GetBoolean(4);
                             getPlayerResult.Close();
                         }
-                    }
-                    else
-                    {
+                    } else {
                         getPlayerResult.Close();
                         _addPlayer.Parameters[DatabaseUtil.NAME_KEY].Value = player.Name;
                         _addPlayer.Parameters[DatabaseUtil.HAS_CLAN_TAG_KEY].Value = player.HasClanTag;
@@ -106,35 +103,29 @@ namespace BWServerLogger.DAO
             return playerSessions;
         }
 
-        public void UpdatePlayerSessions(ISet<PlayerSession> playerSessions)
-        {
-            foreach (PlayerSession playerSession in playerSessions)
-            {
+        public void UpdatePlayerSessions(ISet<PlayerSession> playerSessions) {
+            foreach (PlayerSession playerSession in playerSessions) {
                 UpdatePlayerSession(playerSession);
             }
         }
 
-        public void UpdatePlayerSession(PlayerSession playerSession)
-        {
-            if (playerSession.Updated)
-            {
+        public void UpdatePlayerSession(PlayerSession playerSession) {
+            if (playerSession.Updated) {
                 _updatePlayerSession.Parameters[DatabaseUtil.PLAYED_KEY].Value = playerSession.Played;
                 _updatePlayerSession.Parameters[DatabaseUtil.LENGTH_KEY].Value = playerSession.Length;
                 _updatePlayerSession.Parameters[DatabaseUtil.PLAYER_TO_SESSION_ID_KEY].Value = playerSession.Id;
                 _updatePlayerSession.ExecuteNonQuery();
             }
 
-            if (playerSession.Player.Updated)
-            {
+            if (playerSession.Player.Updated) {
                 _updatePlayer.Parameters[DatabaseUtil.HAS_CLAN_TAG_KEY].Value = playerSession.Player.HasClanTag;
                 _updatePlayer.Parameters[DatabaseUtil.PLAYER_ID_KEY].Value = playerSession.Player.Id;
                 _updatePlayer.ExecuteNonQuery();
             }
         }
 
-        protected override IDictionary<String, ISet<Column>> GetRequiredSchema()
-        {
-            Dictionary<String, ISet<Column>> returnMap = new Dictionary<String, ISet<Column>>();
+        protected override IDictionary<string, ISet<Column>> GetRequiredSchema() {
+            Dictionary<string, ISet<Column>> returnMap = new Dictionary<string, ISet<Column>>();
 
             // define player columns
             HashSet<Column> columns = new HashSet<Column>();
@@ -201,8 +192,7 @@ namespace BWServerLogger.DAO
             return returnMap;
         }
 
-        protected override void SetupPreparedStatements(MySqlConnection connection)
-        {
+        protected override void SetupPreparedStatements(MySqlConnection connection) {
             StringBuilder getPlayerSessionSelect = new StringBuilder();
             getPlayerSessionSelect.Append("select p.id, p.has_clan_tag, ");
             getPlayerSessionSelect.Append("pts.id, pts.length, pts.played ");

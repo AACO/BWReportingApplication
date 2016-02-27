@@ -1,52 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-namespace BWServerLogger.Model
-{
-    public class Column
-    {
-        public string Field
-        {
+﻿namespace BWServerLogger.Model {
+    public class Column {
+        public string Field {
             get;
             private set;
         }
 
-        public string Type
-        {
+        public string Type {
             get;
             private set;
         }
 
-        public bool Null
-        {
+        public bool Null {
             get;
             private set;
         }
 
-        public IndexType Key
-        {
+        public IndexType Key {
             get;
             private set;
         }
 
-        public String Default
-        {
+        public string Default {
             get;
             private set;
         }
 
-        public bool AutoIncrement
-        {
+        public bool AutoIncrement {
             get;
             private set;
         }
 
-        public Column(String field, String type, String isNull, String key, String defaultValue, String autoIncrement)
-        {
+        public Column(string field, string type, string isNull, string key, string defaultValue, string autoIncrement) {
             Field = field;
             Type = type;
             Null = (isNull == "yes") ? true : false;
@@ -55,8 +39,7 @@ namespace BWServerLogger.Model
             AutoIncrement = (autoIncrement == "auto_increment") ? true : false;
         }
 
-        public override int GetHashCode()
-        {
+        public override int GetHashCode() {
             int hashCode = 1;
 
             hashCode = _hashBuilder(hashCode, Field);
@@ -69,20 +52,17 @@ namespace BWServerLogger.Model
             return hashCode;
         }
 
-        public override bool Equals(object obj)
-        {
+        public override bool Equals(object obj) {
             bool equals = false;
 
-            if (obj is Column)
-            {
-                equals = this.GetHashCode() == obj.GetHashCode();
+            if (obj is Column) {
+                equals = GetHashCode() == obj.GetHashCode();
             }
 
             return equals;
         }
 
-        private int _hashBuilder(int currentHashCode, Object itemToAdd)
-        {
+        private int _hashBuilder(int currentHashCode, object itemToAdd) {
             return 31 * currentHashCode + ((itemToAdd == null) ? 0 : itemToAdd.GetHashCode());
         }
     }

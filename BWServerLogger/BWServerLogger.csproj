@@ -106,6 +106,7 @@
     <Compile Include="Exceptions\SchemaMismatchException.cs" />
     <Compile Include="Exceptions\NoSchemaException.cs" />
     <Compile Include="Exceptions\NoServerInfoException.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Job\ReportingJob.cs" />
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>

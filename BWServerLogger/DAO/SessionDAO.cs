@@ -1,31 +1,33 @@
-﻿using MySql.Data;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Globalization;
 
 using BWServerLogger.Model;
 using BWServerLogger.Util;
 
-namespace BWServerLogger.DAO
-{
-    public class SessionDAO : BaseDAO
-    {
+namespace BWServerLogger.DAO {
+    public class SessionDAO : BaseDAO {
         private MySqlCommand _addSession;
         private MySqlCommand _updateSession;
 
-        public SessionDAO(MySqlConnection connection) : base(connection)
-        {
-            SetupPreparedStatements(connection);
+        public SessionDAO(MySqlConnection connection) : base(connection) {
         }
 
-        public Session CreateSession(Session session)
-        {
+        protected override void Dispose(bool disposing) {
+            base.Dispose(disposing);
+            if (disposing) {
+                if (_addSession != null) {
+                    _addSession.Dispose();
+                }
+                if (_updateSession != null) {
+                    _updateSession.Dispose();
+                }
+            }
+        }
+
+        public Session CreateSession(Session session) {
             session.Date = DateTime.Now;
             StringBuilder insert = new StringBuilder();
             insert.Append("insert into session (date, max_players, version, host_name, min_ping, max_ping) values");
@@ -56,8 +58,7 @@ namespace BWServerLogger.DAO
             return session;
         }
 
-        public void UpdateSession(Session session)
-        {
+        public void UpdateSession(Session session) {
             _updateSession.Parameters[DatabaseUtil.MAX_PLAYERS_KEY].Value = session.MaxPlayers;
             _updateSession.Parameters[DatabaseUtil.MAX_PING_KEY].Value = session.MaxPing;
             _updateSession.Parameters[DatabaseUtil.MIN_PING_KEY].Value = session.MinPing;
@@ -65,9 +66,8 @@ namespace BWServerLogger.DAO
             _updateSession.ExecuteNonQuery();
         }
 
-        protected override IDictionary<String, ISet<Column>> GetRequiredSchema()
-        {
-            Dictionary<String, ISet<Column>> returnMap = new Dictionary<String, ISet<Column>>();
+        protected override IDictionary<string, ISet<Column>> GetRequiredSchema() {
+            Dictionary<string, ISet<Column>> returnMap = new Dictionary<string, ISet<Column>>();
 
             // define session columns
             HashSet<Column> columns = new HashSet<Column>();
@@ -124,8 +124,7 @@ namespace BWServerLogger.DAO
             return returnMap;
         }
 
-        protected override void SetupPreparedStatements(MySqlConnection connection)
-        {
+        protected override void SetupPreparedStatements(MySqlConnection connection) {
             StringBuilder addSessionInsert = new StringBuilder();
             addSessionInsert.Append("insert into session (date, max_players, version, host_name, min_ping, max_ping) values");
             addSessionInsert.Append("(");
@@ -171,8 +170,6 @@ namespace BWServerLogger.DAO
             _updateSession.Parameters.Add(new MySqlParameter(DatabaseUtil.MIN_PING_KEY, MySqlDbType.Int32));
             _updateSession.Parameters.Add(new MySqlParameter(DatabaseUtil.SESSION_ID_KEY, MySqlDbType.Int32));
             _updateSession.Prepare();
-
         }
-
     }
 }

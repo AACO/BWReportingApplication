@@ -1,63 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace BWServerLogger.Model
-{
-    public class Session
-    {
-
-        public int Id
-        {
+namespace BWServerLogger.Model {
+    public class Session {
+        public int Id {
             get;
             set;
         }
 
-        public string HostName
-        {
+        public string HostName {
             get;
             set;
         }
 
-        public string Version
-        {
+        public string Version {
             get;
             set;
         }
 
-        public int MaxPlayers
-        {
+        public int MaxPlayers {
             get;
             set;
         }
 
-        public long MaxPing
-        {
+        public long MaxPing {
             get;
             set;
         }
 
-        public long MinPing
-        {
+        public long MinPing {
             get;
             set;
         }
 
-        public DateTime Date
-        {
+        public DateTime Date {
             get;
             set;
         }
 
-        public Session()
-        {
+        public Session() {
         }
 
-        public override int GetHashCode()
-        {
+        public override int GetHashCode() {
             return Date.GetHashCode();
         }
     }

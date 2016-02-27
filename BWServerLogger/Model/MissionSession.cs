@@ -1,42 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿namespace BWServerLogger.Model {
+    public class MissionSession : BaseDatabase {
 
-namespace BWServerLogger.Model
-{
-    public class MissionSession : BaseDatabase
-    {
-
-        public Mission Mission
-        {
+        public Mission Mission {
             get;
             set;
         }
 
-        public Session Session
-        {
+        public Session Session {
             get;
             set;
         }
 
-        public int Length
-        {
+        public int Length {
             get;
             set;
         }
 
-        public bool Played
-        {
+        public bool Played {
             get;
             set;
         }
 
-        public MissionSession() : base()
-        {
+        public MissionSession() : base() {
         }
-
     }
 }

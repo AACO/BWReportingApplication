@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BWServerLogger.Util
-{
-    class ServerInfoConstants
-    {
+﻿namespace BWServerLogger.Util {
+    class ServerInfoConstants {
         public const string BATTLE_EYE = "b";
         public const string REQUIRED_VERSION = "r";
         public const string REQUIRED_BUILD_VERSION = "n";

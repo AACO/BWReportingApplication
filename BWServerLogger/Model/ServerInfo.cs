@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 using BWServerLogger.Util;
 
-namespace BWServerLogger.Model
-{
-    public class ServerInfo
-    {
+namespace BWServerLogger.Model {
+    public class ServerInfo {
         private const int HEADER_OFFSET = 5;
         private const int TABLE_OFFSET = 10;
         private const byte NULL_TERMINATOR = 0;
 
-        public ServerInfo(byte[] response)
-        {
+        public ServerInfo(byte[] response) {
             int pos = HEADER_OFFSET;
             byte protocol = response[pos++]; // I have no idea what this value is for
             HostName = GetString(response, ref pos);
@@ -35,36 +30,29 @@ namespace BWServerLogger.Model
             GetServerTableInfo(response, ref pos);
         }
 
-        public void AddPlayers(byte[] response)
-        {
+        public void AddPlayers(byte[] response) {
             int pos = HEADER_OFFSET;
             NumPlayers = GetIntFromByte(response[pos++]);
             Players = new List<Player>(NumPlayers);
-            if (NumPlayers > 0)
-            {
-                for (int i = 0; i < NumPlayers; i++)
-                {
+            if (NumPlayers > 0) {
+                for (int i = 0; i < NumPlayers; i++) {
                     byte index = response[pos++]; // not really needed, we already have an index
                     string playerName = GetString(response, ref pos);
                     int score = GetInt(response, ref pos); // not going to be used, no need for a dick measuring contest
                     float timeOnServer = GetFloat(response, ref pos); // not going to use time on server, will track differently based on session
-                    if (playerName.Trim() != "") // prevents adding empty player
-                    {
+                    if (playerName.Trim() != "") { // prevents adding empty player
                         Players.Add(new Player(playerName));
                     }
                 }
             }
         }
 
-        private string GetString(byte[] response, ref int pos)
-        {
+        private string GetString(byte[] response, ref int pos) {
             StringBuilder newString = new StringBuilder();
-            while (pos < response.Length)
-            {
+            while (pos < response.Length) {
                 byte currentByte = response[pos];
                 pos++;
-                if (currentByte == NULL_TERMINATOR)
-                {
+                if (currentByte == NULL_TERMINATOR) {
                     break;
                 }
                 newString.Append(Convert.ToChar(currentByte));
@@ -72,25 +60,21 @@ namespace BWServerLogger.Model
             return newString.ToString();
         }
 
-        private short GetShort(byte[] response, ref int pos)
-        {
+        private short GetShort(byte[] response, ref int pos) {
             byte byte1 = response[pos++];
             byte byte2 = response[pos++];
             return BitConverter.ToInt16(new byte[2] { byte1, byte2 }, 0);
         }
 
-        private int GetIntFromByte(byte inputByte)
-        {
+        private int GetIntFromByte(byte inputByte) {
             return BitConverter.ToInt16(new byte[2] { inputByte, 0 }, 0);
         }
 
-        private string GetStringFromByte(byte inputByte)
-        {
+        private string GetStringFromByte(byte inputByte) {
             return Convert.ToChar(inputByte).ToString();
         }
 
-        private int GetInt(byte[] response, ref int pos)
-        {
+        private int GetInt(byte[] response, ref int pos) {
             byte byte1 = response[pos++];
             byte byte2 = response[pos++];
             byte byte3 = response[pos++];
@@ -98,8 +82,7 @@ namespace BWServerLogger.Model
             return BitConverter.ToInt32(new byte[4] { byte1, byte2, byte3, byte4 }, 0);
         }
 
-        private float GetFloat(byte[] response, ref int pos)
-        {
+        private float GetFloat(byte[] response, ref int pos) {
             byte byte1 = response[pos++];
             byte byte2 = response[pos++];
             byte byte3 = response[pos++];
@@ -107,17 +90,13 @@ namespace BWServerLogger.Model
             return BitConverter.ToSingle(new byte[4] { byte1, byte2, byte3, byte4 }, 0);
         }
 
-        private void GetServerTableInfo(byte[] response, ref int pos)
-        {
+        private void GetServerTableInfo(byte[] response, ref int pos) {
             pos = pos + TABLE_OFFSET;
             string info = GetString(response, ref pos);
             string[] infoArray = info.Split(',');
-            foreach (string option in infoArray)
-            {
-                if (option != null && option.Length > 1)
-                {
-                    switch (option.Substring(0, 1))
-                    {
+            foreach (string option in infoArray) {
+                if (option != null && option.Length > 1) {
+                    switch (option.Substring(0, 1)) {
                         case ServerInfoConstants.BATTLE_EYE:
                             BattleEye = option.Substring(1) == ServerInfoConstants.TRUE;
                             break;
@@ -128,10 +107,10 @@ namespace BWServerLogger.Model
                             RequiredBuildVersion = option.Substring(1);
                             break;
                         case ServerInfoConstants.SERVER_STATE:
-                            ServerState = System.Convert.ToInt16(option.Substring(1));
+                            ServerState = Convert.ToInt16(option.Substring(1));
                             break;
                         case ServerInfoConstants.DIFFICULTY:
-                            Difficulty = System.Convert.ToInt16(option.Substring(1));
+                            Difficulty = Convert.ToInt16(option.Substring(1));
                             break;
                         case ServerInfoConstants.EQUAL_MOD_REQUIRED:
                             EqualModRequired = option.Substring(1) == ServerInfoConstants.TRUE;
@@ -161,135 +140,112 @@ namespace BWServerLogger.Model
             }
         }
 
-        public string GameVersion
-        {
+        public string GameVersion {
             get;
             set;
         }
 
-        public string HostName
-        {
+        public string HostName {
             get;
             set;
         }
 
-        public string MapName
-        {
+        public string MapName {
             get;
             set;
         }
 
-        public string Game
-        {
+        public string Game {
             get;
             set;
         }
 
-        public int NumPlayers
-        {
+        public int NumPlayers {
             get;
             set;
         }
 
-        public int MaxPlayers
-        {
+        public int MaxPlayers {
             get;
             set;
         }
 
-        public bool Password
-        {
+        public bool Password {
             get;
             set;
         }
 
-        public string RequiredVersion
-        {
+        public string RequiredVersion {
             get;
             set;
         }
 
-        public string RequiredBuildVersion
-        {
+        public string RequiredBuildVersion {
             get;
             set;
         }
 
-        public bool BattleEye
-        {
+        public bool BattleEye {
             get;
             set;
         }
 
-        public List<Player> Players
-        {
+        public List<Player> Players {
             get;
             set;
         }
 
-        public string Mission
-        {
+        public string Mission {
             get;
             set;
         }
 
-        public long Ping
-        {
+        public long Ping {
             get;
             set;
         }
 
-        public Int16 ServerState
-        {
+        public Int16 ServerState {
             get;
             set;
         }
 
-
-        public Int16 Difficulty
-        {
+        public Int16 Difficulty {
             get;
             set;
         }
 
-        public bool EqualModRequired
-        {
+        public bool EqualModRequired {
             get;
             set;
         }
 
-        public bool Locked
-        {
+        public bool Locked {
             get;
             set;
         }
 
-        public bool VerifySignatures
-        {
+        public bool VerifySignatures {
             get;
             set;
         }
 
-        public string Language
-        {
+        public string Language {
             get;
             set;
         }
 
-        public bool Dedicated
-        {
+        public bool Dedicated {
             get;
             set;
         }
 
-        public string LongLat
-        {
+        public string LongLat {
             get;
             set;
         }
 
-        public string Platform
-        {
+        public string Platform {
             get;
             set;
         }
