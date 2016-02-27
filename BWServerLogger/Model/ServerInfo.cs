@@ -48,7 +48,10 @@ namespace BWServerLogger.Model
                     string playerName = GetString(response, ref pos);
                     int score = GetInt(response, ref pos); // not going to be used, no need for a dick measuring contest
                     float timeOnServer = GetFloat(response, ref pos); // not going to use time on server, will track differently based on session
-                    Players.Add(new Player(playerName));
+                    if (playerName.Trim() != "") // prevents adding empty player
+                    {
+                        Players.Add(new Player(playerName));
+                    }
                 }
             }
         }
