@@ -341,7 +341,7 @@ namespace BWServerLogger.Util {
             { new Column("updated_on", "datetime", false, "", false) },
             { new Column("description", "text", false, "", false) },
             { new Column("mode", "enum('Adversarial','COOP','Zeus','After Hours')", false, "'Adversarial'", false) },
-            { new Column("target_player_count", "int(10)", false, "'0'", false) },
+            { new Column("target_player_count", "int(10) unsigned", false, "'0'", false) },
             { new Column("framework_id", "int(10)", true, "NULL", false) },
             { new Column("tested", "bit(1)", false, "b'0'", false) },
             { new Column("replayable", "bit(1)", false, "b'0'", false) }
