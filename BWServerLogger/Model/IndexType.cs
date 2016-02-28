@@ -1,15 +1,15 @@
 ﻿namespace BWServerLogger.Model {
     public static class Extensions {
         public static IndexType FromString(this IndexType type, string indexType) {
-            IndexType returnType = IndexType.NONE;
+            IndexType returnType = IndexType.NONUNIQUE;
 
             if (indexType != null && indexType != "") {
-                if (indexType == "PRI") {
+                if (indexType == "PRIMARY") {
                     returnType = IndexType.PRIMARY;
-                } else if (indexType == "UNI") {
+                } else if (indexType == "UNIQUE") {
                     returnType = IndexType.UNIQUE;
-                } else if (indexType == "MUL") {
-                    returnType = IndexType.NONUNIQUE;
+                } else if (indexType == "FOREIGN") {
+                    returnType = IndexType.FOREIGN;
                 }
             }
 
@@ -18,9 +18,9 @@
     }
 
     public enum IndexType {
-        NONE = 0,
-        PRIMARY = 1,
-        UNIQUE = 2,
-        NONUNIQUE = 3
+        PRIMARY = 0,
+        UNIQUE = 1,
+        NONUNIQUE = 2,
+        FOREIGN = 3
     }
 }

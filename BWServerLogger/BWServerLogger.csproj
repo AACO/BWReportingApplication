@@ -31,7 +31,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -115,6 +115,8 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="LoggerUI.cs" />
+    <Compile Include="Model\Index.cs" />
+    <Compile Include="Model\Table.cs" />
     <Compile Include="Model\IndexType.cs" />
     <Compile Include="Model\Column.cs" />
     <Compile Include="Model\BaseDatabase.cs" />
@@ -129,6 +131,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service\ReportingService.cs" />
     <Compile Include="Service\ServerInfoService.cs" />
+    <Compile Include="Util\HashUtil.cs" />
     <Compile Include="Util\TagUtil.cs" />
     <Compile Include="Util\ServerInfoConstants.cs" />
     <Compile Include="Util\DatabaseUtil.cs" />
