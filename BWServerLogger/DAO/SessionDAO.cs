@@ -66,64 +66,6 @@ namespace BWServerLogger.DAO {
             _updateSession.ExecuteNonQuery();
         }
 
-        protected override IDictionary<string, ISet<Column>> GetRequiredSchema() {
-            Dictionary<string, ISet<Column>> returnMap = new Dictionary<string, ISet<Column>>();
-
-            // define session columns
-            HashSet<Column> columns = new HashSet<Column>();
-            columns.Add(new Column("id",
-                                   "int(10) unsigned",
-                                   "NO",
-                                   "PRI",
-                                   null,
-                                   "auto_increment"));
-
-            columns.Add(new Column("date",
-                                   "datetime",
-                                   "NO",
-                                   "UNI",
-                                   null,
-                                   ""));
-
-            columns.Add(new Column("host_name",
-                                   "varchar(255)",
-                                   "NO",
-                                   "",
-                                   null,
-                                   ""));
-
-            columns.Add(new Column("max_players",
-                                   "int(10) unsigned",
-                                   "NO",
-                                   "",
-                                   null,
-                                   ""));
-
-            columns.Add(new Column("version",
-                                   "varchar(50)",
-                                   "NO",
-                                   "",
-                                   null,
-                                   ""));
-
-            columns.Add(new Column("min_ping",
-                                   "int(10) unsigned",
-                                   "NO",
-                                   "",
-                                   null,
-                                   ""));
-
-            columns.Add(new Column("max_ping",
-                                   "int(10) unsigned",
-                                   "NO",
-                                   "",
-                                   null,
-                                   ""));
-            returnMap.Add("session", columns);
-
-            return returnMap;
-        }
-
         protected override void SetupPreparedStatements(MySqlConnection connection) {
             StringBuilder addSessionInsert = new StringBuilder();
             addSessionInsert.Append("insert into session (date, max_players, version, host_name, min_ping, max_ping) values");

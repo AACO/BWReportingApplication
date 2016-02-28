@@ -1,4 +1,6 @@
-﻿namespace BWServerLogger.Model {
+﻿using BWServerLogger.Util;
+
+namespace BWServerLogger.Model {
     public class Column {
         public string Field {
             get;
@@ -15,11 +17,6 @@
             private set;
         }
 
-        public IndexType Key {
-            get;
-            private set;
-        }
-
         public string Default {
             get;
             private set;
@@ -30,24 +27,30 @@
             private set;
         }
 
-        public Column(string field, string type, string isNull, string key, string defaultValue, string autoIncrement) {
+        public Column(string field, string type, string isNull, string defaultValue, string autoIncrement) {
             Field = field;
             Type = type;
             Null = (isNull == "yes") ? true : false;
-            Key = IndexType.NONE.FromString(key);
             Default = defaultValue;
             AutoIncrement = (autoIncrement == "auto_increment") ? true : false;
         }
 
-        public override int GetHashCode() {
-            int hashCode = 1;
+        public Column(string field, string type, bool isNull, string defaultValue, bool autoIncrement) {
+            Field = field;
+            Type = type;
+            Null = isNull;
+            Default = defaultValue;
+            AutoIncrement = autoIncrement;
+        }
 
-            hashCode = _hashBuilder(hashCode, Field);
-            hashCode = _hashBuilder(hashCode, Type);
-            hashCode = _hashBuilder(hashCode, Null);
-            hashCode = _hashBuilder(hashCode, Key);
-            hashCode = _hashBuilder(hashCode, Default);
-            hashCode = _hashBuilder(hashCode, AutoIncrement);
+        public override int GetHashCode() {
+            int hashCode = 17;
+
+            hashCode = HashUtil.SimpleObjectHashBuilderHelper(hashCode, Field);
+            hashCode = HashUtil.SimpleObjectHashBuilderHelper(hashCode, Type);
+            hashCode = HashUtil.SimpleObjectHashBuilderHelper(hashCode, Null);
+            hashCode = HashUtil.SimpleObjectHashBuilderHelper(hashCode, Default);
+            hashCode = HashUtil.SimpleObjectHashBuilderHelper(hashCode, AutoIncrement);
 
             return hashCode;
         }
@@ -60,10 +63,6 @@
             }
 
             return equals;
-        }
-
-        private int _hashBuilder(int currentHashCode, object itemToAdd) {
-            return 31 * currentHashCode + ((itemToAdd == null) ? 0 : itemToAdd.GetHashCode());
         }
     }
 }
