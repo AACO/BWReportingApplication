@@ -30,9 +30,9 @@ namespace BWServerLogger.Model {
         public Column(string field, string type, string isNull, string defaultValue, string autoIncrement) {
             Field = field;
             Type = type;
-            Null = (isNull == "yes") ? true : false;
+            Null = (isNull == "") ? true : false;
             Default = defaultValue;
-            AutoIncrement = (autoIncrement == "auto_increment") ? true : false;
+            AutoIncrement = (autoIncrement != "") ? true : false;
         }
 
         public Column(string field, string type, bool isNull, string defaultValue, bool autoIncrement) {

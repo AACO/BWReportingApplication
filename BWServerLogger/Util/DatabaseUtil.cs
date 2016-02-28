@@ -57,8 +57,8 @@ namespace BWServerLogger.Util {
         public const string TIME_FORMAT = "HH:mm:ss";
 
         // regex magic to scrape mysql create table output, need '@' to avoid escaping these monsters
-        public const string COLUMN_MATCHER_REGEX = @"`(.+)` ([A-Za-z0-9]+(?:\([A-Za-z0-9,' ]+\))?(?: unsigned)?)( NOT NULL)?( DEFAULT [A-Za-z0-9' ]+)?( AUTO_INCREMENT)?,";
-        public const string INDEX_MATCHER_REGEX = @"((?:PRIMARY)|(?:UNIQUE))? ?KEY ?(?:`([A-Za-z_]+)` )?\(((?:`(?:[A-Za-z_]+)`,?)+)\)(?! REFERENCES)";
+        public const string COLUMN_MATCHER_REGEX = @"`(.+)` ([A-Za-z0-9]+(?:\([A-Za-z0-9,' ]+\))?(?: unsigned)?)( NOT NULL)?(?: DEFAULT ([A-Za-z0-9' ]+))?( AUTO_INCREMENT)?,";
+        public const string INDEX_MATCHER_REGEX = @"((?:PRIMARY)|(?:UNIQUE))? ?KEY ?(?:`([A-Za-z0-9_]+)` )?\(((?:`(?:[A-Za-z0-9_]+)`,?)+)\)(?! REFERENCES)";
         public const string FK_MATCHER_REGEX = @"CONSTRAINT `([A-Za-z0-9_]+)` FOREIGN KEY \(((?:`(?:[A-Za-z_]+)`,?)+)\) REFERENCES `([A-Za-z0-9_]+)` \(((?:`(?:[A-Za-z_]+)`,?)+)\)";
 
         public static MySqlConnection OpenDataSource() {
@@ -118,7 +118,9 @@ namespace BWServerLogger.Util {
             } catch (MySqlException e) {
                 // checks to see if the table exists, if it doesn't try to create it.
                 if ((int)MySqlErrorCode.NoSuchTable == e.Number) {
-                    MySqlCommand createTable = new MySqlCommand(table.CreateTableSQL(), connection);
+                    string createTableSql = table.CreateTableSQL();
+                    _logger.DebugFormat("Creating table: {0} with query: \r {1}", table.Name, createTableSql);
+                    MySqlCommand createTable = new MySqlCommand(createTableSql, connection);
 
                     try {
                         createTable.ExecuteNonQuery();
@@ -147,11 +149,11 @@ namespace BWServerLogger.Util {
 
             foreach (Match match in matches) {
                 GroupCollection groups = match.Groups;
-                schemaColumns.Add(new Column(groups[0].Value,
-                                             groups[1].Value,
+                schemaColumns.Add(new Column(groups[1].Value,
                                              groups[2].Value,
                                              groups[3].Value,
-                                             groups[4].Value));
+                                             groups[4].Value,
+                                             groups[5].Value));
             }
 
             foreach (Column col in columns) {
@@ -170,9 +172,9 @@ namespace BWServerLogger.Util {
 
             foreach (Match match in matches) {
                 GroupCollection groups = match.Groups;
-                schemaIndices.Add(new Index(groups[0].Value,
-                                            groups[1].Value,
-                                            groups[2].Value));
+                schemaIndices.Add(new Index(groups[1].Value,
+                                            groups[2].Value,
+                                            groups[3].Value));
             }
 
             Regex fkRegex = new Regex(FK_MATCHER_REGEX);
@@ -180,10 +182,10 @@ namespace BWServerLogger.Util {
 
             foreach (Match match in matches) {
                 GroupCollection groups = match.Groups;
-                schemaIndices.Add(new Index(groups[0].Value,
-                                            groups[1].Value,
+                schemaIndices.Add(new Index(groups[1].Value,
                                             groups[2].Value,
-                                            groups[3].Value));
+                                            groups[3].Value,
+                                            groups[4].Value));
             }
 
             foreach (Index index in indices) {
@@ -260,6 +262,158 @@ namespace BWServerLogger.Util {
             }
         }
 
+        // map columns
+        private static ISet<Column> _mapColumns = new HashSet<Column> {
+            { new Column("id", "int(10) unsigned", false, "", true) },
+            { new Column("friendly_name", "varchar(150)", false, "", false) },
+            { new Column("name", "varchar(150)", false, "", false) },
+            { new Column("active", "bit(1)", false, "b'1'", false) }
+        };
+
+        // map indices
+        private static IList<Index> _mapIndices = new List<Index> {
+            { new Index("id") },
+            { new Index(IndexType.UNIQUE, "name", "name") },
+            { new Index(IndexType.UNIQUE, "friendly_name", "friendly_name") }
+        };
+
+        // player columns
+        private static ISet<Column> _playerColumns = new HashSet<Column> {
+            { new Column("id", "int(10) unsigned", false, "", true) },
+            { new Column("name", "varchar(255)", false, "", false) },
+            { new Column("has_clan_tag", "bit(1)", false, "b'0'", false) }
+        };
+
+        // player indices
+        private static IList<Index> _playerIndices = new List<Index> {
+            { new Index("id") },
+            { new Index(IndexType.UNIQUE, "name", "name") }
+        };
+
+        // session columns
+        private static ISet<Column> _sessionColumns = new HashSet<Column> {
+            { new Column("id", "int(10) unsigned", false, "", true) },
+            { new Column("date", "datetime", false, "", false) },
+            { new Column("host_name", "varchar(255)", false, "", false) },
+            { new Column("max_players", "int(10) unsigned", false, "", false) },
+            { new Column("version", "varchar(50)", false, "", false) },
+            { new Column("min_ping", "int(10) unsigned", false, "", false) },
+            { new Column("max_ping", "int(10) unsigned", false, "", false) }
+        };
+
+        // session indices
+        private static IList<Index> _sessionIndices = new List<Index> {
+            { new Index("id") },
+            { new Index(IndexType.UNIQUE, "date", "date") }
+        };
+
+        // schedule columns
+        private static ISet<Column> _scheduleColumns = new HashSet<Column> {
+            { new Column("id", "int(10) unsigned", false, "", true) },
+            { new Column("day_of_the_week", "enum('SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY')", false, "", false) },
+            { new Column("time_of_day", "time", false, "", false) }
+        };
+
+        // schedule indices
+        private static IList<Index> _scheduleIndices = new List<Index> {
+            { new Index("id") },
+            { new Index(IndexType.UNIQUE, "unique_schedule_constraint", "day_of_the_week,time_of_day") }
+        };
+
+        // framework columns
+        private static ISet<Column> _frameworkColumns = new HashSet<Column> {
+            { new Column("id", "int(10)", false, "", true) },
+            { new Column("version", "varchar(10)", false, "", false) },
+            { new Column("url", "varchar(255)", false, "", false) }
+        };
+
+        // framework indices
+        private static IList<Index> _frameworkIndices = new List<Index> {
+            { new Index("id") }
+        };
+
+        // mission columns
+        private static ISet<Column> _missionColumns = new HashSet<Column> {
+            { new Column("id", "int(10) unsigned", false, "", true) },
+            { new Column("name", "varchar(255)", false, "", false) },
+            { new Column("map_id", "int(10) unsigned", false, "", false) },
+            { new Column("created_on", "datetime", false, "", false) },
+            { new Column("updated_on", "datetime", false, "", false) },
+            { new Column("description", "text", false, "", false) },
+            { new Column("mode", "enum('Adversarial','COOP','Zeus','After Hours')", false, "'Adversarial'", false) },
+            { new Column("target_player_count", "int(10)", false, "'0'", false) },
+            { new Column("framework_id", "int(10)", true, "NULL", false) },
+            { new Column("tested", "bit(1)", false, "b'0'", false) },
+            { new Column("replayable", "bit(1)", false, "b'0'", false) }
+        };
+
+        // mission indices
+        private static IList<Index> _missionIndices = new List<Index> {
+            { new Index("id") },
+            { new Index(IndexType.UNIQUE, "name", "name") },
+            { new Index(IndexType.NONUNIQUE, "map", "map_id") },
+            { new Index(IndexType.NONUNIQUE, "framework_id", "framework_id") },
+            { new Index("mission_fw_id_to_fw_id", "framework_id", "framework", "id") },
+            { new Index("mission_key_map_id_to_map", "map_id", "map", "id") }
+        };
+
+        // player to session columns
+        private static ISet<Column> _ptsColumns = new HashSet<Column> {
+            { new Column("id", "int(10) unsigned", false, "", true) },
+            { new Column("player_id", "int(10) unsigned", false, "", false) },
+            { new Column("session_id", "int(10) unsigned", false, "", false) },
+            { new Column("length", "int(10) unsigned", false, "'0'", false) },
+            { new Column("played", "bit(1)", false, "b'0'", false) }
+        };
+
+        // player to session indices
+        private static IList<Index> _ptsIndices = new List<Index> {
+            { new Index("id") },
+            { new Index(IndexType.UNIQUE, "player_id_session_id", "player_id,session_id") },
+            { new Index(IndexType.NONUNIQUE, "player_id_to_player", "player_id") },
+            { new Index(IndexType.NONUNIQUE, "pts_key_session_id_to_session", "session_id") },
+            { new Index("pts_key_player_id_to_player", "player_id", "player", "id") },
+            { new Index("pts_key_session_id_to_session", "session_id", "session", "id") }
+        };
+
+        // mission to session columns
+        private static ISet<Column> _mtsColumns = new HashSet<Column> {
+            { new Column("id", "int(10) unsigned", false, "", true) },
+            { new Column("mission_id", "int(10) unsigned", false, "", false) },
+            { new Column("session_id", "int(10) unsigned", false, "", false) },
+            { new Column("length", "int(10) unsigned", false, "'0'", false) },
+            { new Column("played", "bit(1)", false, "b'0'", false) }
+        };
+
+        // mission to session indices
+        private static IList<Index> _mtsIndices = new List<Index> {
+            { new Index("id") },
+            { new Index(IndexType.UNIQUE, "mission_id_session_id", "mission_id,session_id") },
+            { new Index(IndexType.NONUNIQUE, "mts_key_session_id_to_session", "session_id") },
+            { new Index(IndexType.NONUNIQUE, "mts_key_mission_id_to_mission", "mission_id") },
+            { new Index("mts_key_mission_id_to_mission", "mission_id", "mission", "id") },
+            { new Index("mts_key_session_id_to_session", "session_id", "session", "id") }
+        };
+
+        // mission to session columns
+        private static ISet<Column> _ptstmtsColumns = new HashSet<Column> {
+            { new Column("id", "int(10) unsigned", false, "", true) },
+            { new Column("player_to_session_id", "int(10) unsigned", false, "", false) },
+            { new Column("mission_to_session_id", "int(10) unsigned", false, "", false) },
+            { new Column("length", "int(10) unsigned", false, "'0'", false) },
+            { new Column("played", "bit(1)", false, "b'0'", false) }
+        };
+
+        // mission to session indices
+        private static IList<Index> _ptstmtsIndices = new List<Index> {
+            { new Index("id") },
+            { new Index(IndexType.UNIQUE, "mission_to_session_id_2", "mission_to_session_id,player_to_session_id") },
+            { new Index(IndexType.NONUNIQUE, "player_to_session_id", "player_to_session_id") },
+            { new Index(IndexType.NONUNIQUE, "mission_to_session_id", "mission_to_session_id") },
+            { new Index("ptstmts_to_mts", "mission_to_session_id", "mission_to_session", "id") },
+            { new Index("ptstmts_to_pts", "player_to_session_id", "player_to_session", "id") }
+        };
+
         // ORDER MATTERS!
         private static IList<Table> _tables = new List<Table> {
             // adding map table
@@ -288,158 +442,6 @@ namespace BWServerLogger.Util {
 
             // adding player to session to mission to session table (relies on pts and mts)
             { new Table(PLAYER_TO_SESSION_TO_MISSION_TO_SESSION, _ptstmtsColumns, _ptstmtsIndices) }
-        };
-
-        // map columns
-        private static ISet<Column> _mapColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, null, true) },
-            { new Column("friendly_name", "varchar(150)", false, null, false) },
-            { new Column("name", "varchar(150)", false, null, false) },
-            { new Column("active", "bit(1)", false, "b'1'", false) }
-        };
-
-        // map indices
-        private static IList<Index> _mapIndices = new List<Index> {
-            { new Index("id") },
-            { new Index(IndexType.UNIQUE, "name", "name") },
-            { new Index(IndexType.UNIQUE, "friendly_name", "friendly_name") }
-        };
-
-        // player columns
-        private static ISet<Column> _playerColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, null, true) },
-            { new Column("name", "varchar(255)", false, null, false) },
-            { new Column("has_clan_tag", "bit(1)", false, "b'0'", false) }
-        };
-
-        // player indices
-        private static IList<Index> _playerIndices = new List<Index> {
-            { new Index("id") },
-            { new Index(IndexType.UNIQUE, "name", "name") }
-        };
-
-        // session columns
-        private static ISet<Column> _sessionColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, null, true) },
-            { new Column("date", "datetime", false, null, false) },
-            { new Column("host_name", "varchar(255)", false, null, false) },
-            { new Column("max_players", "int(10) unsigned", false, null, false) },
-            { new Column("version", "varchar(50)", false, null, false) },
-            { new Column("min_ping", "int(10) unsigned", false, null, false) },
-            { new Column("max_ping", "int(10) unsigned", false, null, false) }
-        };
-
-        // session indices
-        private static IList<Index> _sessionIndices = new List<Index> {
-            { new Index("id") },
-            { new Index(IndexType.UNIQUE, "date", "date") }
-        };
-
-        // schedule columns
-        private static ISet<Column> _scheduleColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, null, true) },
-            { new Column("day_of_the_week", "enum('SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY')", false, null, false) },
-            { new Column("time_of_day", "time", false, null, false) }
-        };
-
-        // schedule indices
-        private static IList<Index> _scheduleIndices = new List<Index> {
-            { new Index("id") },
-            { new Index(IndexType.UNIQUE, "unique_schedule_constraint", "day_of_the_week,time_of_day") }
-        };
-
-        // framework columns
-        private static ISet<Column> _frameworkColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, null, true) },
-            { new Column("version", "varchar(10)", false, null, false) },
-            { new Column("url", "varchar(255)", false, null, false) }
-        };
-
-        // framework indices
-        private static IList<Index> _frameworkIndices = new List<Index> {
-            { new Index("id") }
-        };
-
-        // mission columns
-        private static ISet<Column> _missionColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, null, true) },
-            { new Column("name", "varchar(255)", false, null, false) },
-            { new Column("map_id", "int(10) unsigned", false, null, false) },
-            { new Column("created_on", "datetime", false, null, false) },
-            { new Column("updated_on", "datetime", false, null, false) },
-            { new Column("description", "text", false, null, false) },
-            { new Column("mode", "enum('Adversarial','COOP','Zeus','After Hours')", false, "'Adversarial'", false) },
-            { new Column("target_player_count", "int(10)", false, "'0'", false) },
-            { new Column("framework_id", "int(10)", true, "NULL", false) },
-            { new Column("tested", "bit(1)", false, "b'0'", false) },
-            { new Column("replayable", "bit(1)", false, "b'0'", false) }
-        };
-
-        // mission indices
-        private static IList<Index> _missionIndices = new List<Index> {
-            { new Index("id") },
-            { new Index(IndexType.UNIQUE, "name", "name") },
-            { new Index(IndexType.NONUNIQUE, "map", "map_id") },
-            { new Index(IndexType.NONUNIQUE, "framework_id", "framework_id") },
-            { new Index("mission_fw_id_to_fw_id", "framework_id", "framework", "id") },
-            { new Index("mission_key_map_id_to_map", "map_id", "map", "id") }
-        };
-
-        // player to session columns
-        private static ISet<Column> _ptsColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, null, true) },
-            { new Column("player_id", "int(10) unsigned", false, null, false) },
-            { new Column("session_id", "int(10) unsigned", false, null, false) },
-            { new Column("length", "int(10) unsigned", false, "'0'", false) },
-            { new Column("played", "bit(1)", false, "b'0'", false) }
-        };
-
-        // player to session indices
-        private static IList<Index> _ptsIndices = new List<Index> {
-            { new Index("id") },
-            { new Index(IndexType.UNIQUE, "player_id_session_id", "player_id,session_id") },
-            { new Index(IndexType.NONUNIQUE, "player_id_to_player", "player_id") },
-            { new Index(IndexType.NONUNIQUE, "pts_key_session_id_to_session", "session_id") },
-            { new Index("pts_key_player_id_to_player", "player_id", "player", "id") },
-            { new Index("pts_key_session_id_to_session", "session_id", "session", "id") }
-        };
-
-        // mission to session columns
-        private static ISet<Column> _mtsColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, null, true) },
-            { new Column("mission_id", "int(10) unsigned", false, null, false) },
-            { new Column("session_id", "int(10) unsigned", false, null, false) },
-            { new Column("length", "int(10) unsigned", false, "'0'", false) },
-            { new Column("played", "bit(1)", false, "b'0'", false) }
-        };
-
-        // mission to session indices
-        private static IList<Index> _mtsIndices = new List<Index> {
-            { new Index("id") },
-            { new Index(IndexType.UNIQUE, "mission_id_session_id", "mission_id,session_id") },
-            { new Index(IndexType.NONUNIQUE, "mts_key_session_id_to_session", "session_id") },
-            { new Index(IndexType.NONUNIQUE, "mts_key_mission_id_to_mission", "mission_id") },
-            { new Index("mts_key_mission_id_to_mission", "mission_id", "mission", "id") },
-            { new Index("mts_key_session_id_to_session", "session_id", "session", "id") }
-        };
-
-        // mission to session columns
-        private static ISet<Column> _ptstmtsColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, null, true) },
-            { new Column("player_to_session_id", "int(10) unsigned", false, null, false) },
-            { new Column("mission_to_session_id", "int(10) unsigned", false, null, false) },
-            { new Column("length", "int(10) unsigned", false, "'0'", false) },
-            { new Column("played", "bit(1)", false, "b'0'", false) }
-        };
-
-        // mission to session indices
-        private static IList<Index> _ptstmtsIndices = new List<Index> {
-            { new Index("id") },
-            { new Index(IndexType.UNIQUE, "mission_to_session_id_2", "mission_to_session_id,player_to_session_id") },
-            { new Index(IndexType.NONUNIQUE, "player_to_session_id", "player_to_session_id") },
-            { new Index(IndexType.NONUNIQUE, "mission_to_session_id", "mission_to_session_id") },
-            { new Index("ptstmts_to_mts", "mission_to_session_id", "mission_to_session", "id") },
-            { new Index("ptstmts_to_pts", "player_to_session_id", "player_to_session", "id") }
         };
     }
 }

@@ -39,7 +39,7 @@ namespace BWServerLogger.Model {
             // split input columns, and add them to our list
             Columns = _csvToList(columns);
             Type = IndexType.PRIMARY.FromString(type);
-            Name = name;
+            Name = name == "" ? null : name;
         }
 
         public Index(IndexType type, string name, string columns) {

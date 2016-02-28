@@ -49,7 +49,7 @@ namespace BWServerLogger.Model {
                 createTableQuery.Append(" ");
                 createTableQuery.Append(col.Null ? "" : "NOT NULL");
                 createTableQuery.Append(" ");
-                if (col.Default != null) {
+                if (col.Default != "") {
                     createTableQuery.Append("DEFAULT ");
                     createTableQuery.Append(col.Default);
                     createTableQuery.Append(" ");
@@ -78,9 +78,9 @@ namespace BWServerLogger.Model {
                         createTableQuery.Append(")");
                         break;
                     case IndexType.FOREIGN:
-                        createTableQuery.Append("CONTRAINT `");
+                        createTableQuery.Append("CONSTRAINT `");
                         createTableQuery.Append(index.Name);
-                        createTableQuery.Append("` (");
+                        createTableQuery.Append("` FOREIGN KEY (");
                         _addColumns(ref createTableQuery, index.Columns);
                         createTableQuery.Append(") REFERENCES `");
                         createTableQuery.Append(index.ReferenceTable);
