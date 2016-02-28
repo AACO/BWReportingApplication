@@ -15,16 +15,16 @@
       <Value Profile="(Default)">14400000</Value>
     </Setting>
     <Setting Name="armaServerAddress" Type="System.String" Scope="User">
-      <Value Profile="(Default)">64.74.97.149</Value>
+      <Value Profile="(Default)">a3.bourbonwarfare.com</Value>
     </Setting>
     <Setting Name="armaServerPort" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">2304</Value>
+      <Value Profile="(Default)">2303</Value>
     </Setting>
     <Setting Name="mySQLServerAddress" Type="System.String" Scope="User">
       <Value Profile="(Default)">10.0.0.2</Value>
     </Setting>
     <Setting Name="mySQLServerPort" Type="System.String" Scope="User">
-      <Value Profile="(Default)">3307</Value>
+      <Value Profile="(Default)">3306</Value>
     </Setting>
     <Setting Name="mySQLServerDatabase" Type="System.String" Scope="User">
       <Value Profile="(Default)">bourbon</Value>

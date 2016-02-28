@@ -12,7 +12,7 @@ namespace BWServerLogger.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "12.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -73,7 +73,7 @@ namespace BWServerLogger.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("64.74.97.149")]
+        [global::System.Configuration.DefaultSettingValueAttribute("a3.bourbonwarfare.com")]
         public string armaServerAddress {
             get {
                 return ((string)(this["armaServerAddress"]));
@@ -85,7 +85,7 @@ namespace BWServerLogger.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2304")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2303")]
         public int armaServerPort {
             get {
                 return ((int)(this["armaServerPort"]));
@@ -109,7 +109,7 @@ namespace BWServerLogger.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("3307")]
+        [global::System.Configuration.DefaultSettingValueAttribute("3306")]
         public string mySQLServerPort {
             get {
                 return ((string)(this["mySQLServerPort"]));
