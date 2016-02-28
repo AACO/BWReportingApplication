@@ -26,7 +26,16 @@ namespace BWServerLogger.Service {
             while (retry.ElapsedMilliseconds < Properties.Settings.Default.retryTimeLimit) {
                 try {
                     using (UdpClient client = new UdpClient(56800)) {
-                        IPEndPoint remoteIpEndpoint = new IPEndPoint(IPAddress.Parse(host), port);
+                        IPAddress[] hostEntry = Dns.GetHostAddresses(host);
+
+                        IPEndPoint remoteIpEndpoint = null;
+                        if (hostEntry.Length > 0) {
+                            remoteIpEndpoint = new IPEndPoint(hostEntry[0], port);
+                        }
+                        else {
+                            remoteIpEndpoint = new IPEndPoint(IPAddress.Parse(host), port);
+                        }
+                        
                         client.Client.ReceiveTimeout = 20000;
                         client.Connect(remoteIpEndpoint);
 

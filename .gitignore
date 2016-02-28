@@ -3,3 +3,6 @@ bin/
 
 #ignore the MS VS folder
 .vs/
+
+#ignore the build obj folder
+obj/

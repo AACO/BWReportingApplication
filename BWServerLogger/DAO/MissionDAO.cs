@@ -195,7 +195,7 @@ namespace BWServerLogger.DAO {
                                    "enum('Adversarial','COOP','Zeus','After Hours')",
                                    "NO",
                                    "",
-                                   "'Adversarial'",
+                                   "Adversarial",
                                    ""));
 
             columns.Add(new Column("target_player_count",
