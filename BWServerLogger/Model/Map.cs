@@ -1,4 +1,5 @@
-﻿
+﻿using BWServerLogger.Util;
+
 namespace BWServerLogger.Model {
     public class Map : BaseDatabase {
         public string Name {
@@ -17,6 +18,16 @@ namespace BWServerLogger.Model {
 
         public Map(string name) : this() {
             Name = name;
+        }
+
+        public override int GetHashCode() {
+            int hashcode = 17;
+
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, base.GetHashCode());
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Name);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Active);
+
+            return hashcode;
         }
     }
 }

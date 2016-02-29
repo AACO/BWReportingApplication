@@ -30,7 +30,13 @@ namespace BWServerLogger.Model {
         }
 
         public override int GetHashCode() {
-            return Name.GetHashCode();
+            int hashcode = 17;
+
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, base.GetHashCode());
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Name);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, HasClanTag);
+
+            return hashcode;
         }
     }
 }

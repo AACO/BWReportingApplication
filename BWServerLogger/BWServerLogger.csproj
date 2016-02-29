@@ -115,7 +115,9 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="LoggerUI.cs" />
+    <Compile Include="Model\BaseRelational.cs" />
     <Compile Include="Model\Index.cs" />
+    <Compile Include="Model\PlayerSessionToMissionSession.cs" />
     <Compile Include="Model\Table.cs" />
     <Compile Include="Model\IndexType.cs" />
     <Compile Include="Model\Column.cs" />
