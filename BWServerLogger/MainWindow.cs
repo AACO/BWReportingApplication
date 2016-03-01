@@ -92,7 +92,6 @@ namespace BWServerLogger {
                 _logger.Error("Problem getting schedule items", ex);
             } finally {
                 if (connection != null) {
-                    connection.Close();
                     connection.Dispose();
                 }
             }
@@ -169,7 +168,6 @@ namespace BWServerLogger {
                 _logger.Error("Problem saving schedule items", ex);
             } finally {
                 if (connection != null) {
-                    connection.Close();
                     connection.Dispose();
                 }
             }
@@ -220,7 +218,6 @@ namespace BWServerLogger {
                 _logger.Error("Problem removing schedule items", ex);
             } finally {
                 if (connection != null) {
-                    connection.Close();
                     connection.Dispose();
                 }
             }

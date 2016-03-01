@@ -48,6 +48,7 @@ namespace BWServerLogger.Util {
         public const string VERSION_KEY = "@version";
         public const string HOST_NAME_KEY = "@hostName";
         public const string SCHEDULE_ID_KEY = "@scheduleId";
+        public const string PLAYER_TO_SESSION_TO_MISSION_TO_SESSION_ID_KEY = "@ptstmtsId";
 
         // default target player count for a new mission
         public const int DEFAULT_PLAYER_COUNT = 50;
@@ -57,9 +58,9 @@ namespace BWServerLogger.Util {
         public const string TIME_FORMAT = "HH:mm:ss";
 
         // regex magic to scrape mysql create table output, need '@' to avoid escaping these monsters
-        public const string COLUMN_MATCHER_REGEX = @"`(.+)` ([A-Za-z0-9]+(?:\([A-Za-z0-9,' ]+\))?(?: unsigned)?)( NOT NULL)?(?: DEFAULT ([A-Za-z0-9' ]+))?( AUTO_INCREMENT)?,";
-        public const string INDEX_MATCHER_REGEX = @"((?:PRIMARY)|(?:UNIQUE))? ?KEY ?(?:`([A-Za-z0-9_]+)` )?\(((?:`(?:[A-Za-z0-9_]+)`,?)+)\)(?! REFERENCES)";
-        public const string FK_MATCHER_REGEX = @"CONSTRAINT `([A-Za-z0-9_]+)` FOREIGN KEY \(((?:`(?:[A-Za-z_]+)`,?)+)\) REFERENCES `([A-Za-z0-9_]+)` \(((?:`(?:[A-Za-z_]+)`,?)+)\)";
+        private const string COLUMN_MATCHER_REGEX = @"`(.+)` ([A-Za-z0-9]+(?:\([A-Za-z0-9,' ]+\))?(?: unsigned)?)( NOT NULL)?(?: DEFAULT ([A-Za-z0-9' ]+))?( AUTO_INCREMENT)?,";
+        private const string INDEX_MATCHER_REGEX = @"((?:PRIMARY)|(?:UNIQUE))? ?KEY ?(?:`([A-Za-z0-9_]+)` )?\(((?:`(?:[A-Za-z0-9_]+)`,?)+)\)(?! REFERENCES)";
+        private const string FK_MATCHER_REGEX = @"CONSTRAINT `([A-Za-z0-9_]+)` FOREIGN KEY \(((?:`(?:[A-Za-z_]+)`,?)+)\) REFERENCES `([A-Za-z0-9_]+)` \(((?:`(?:[A-Za-z_]+)`,?)+)\)";
 
         public static MySqlConnection OpenDataSource() {
             // build connection string (using "AppSettings" instead of "ConnectionStrings" to allow easier password en/decryption)

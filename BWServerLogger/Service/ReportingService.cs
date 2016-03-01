@@ -45,15 +45,23 @@ namespace BWServerLogger.Service {
                 runTime.Start();
                 try {
                     while (session == null && CheckTimeThreshold(runTime.ElapsedMilliseconds)) {
-                        session = SetUpSession(serverInfoService, sessionDAO, Settings.Default.armaServerAddress,
-                                               Settings.Default.armaServerPort, ref inGame);
+                        try {
+                            session = SetUpSession(serverInfoService, sessionDAO, Settings.Default.armaServerAddress,
+                                                   Settings.Default.armaServerPort, ref inGame);
+                        } catch (MySqlException e) {
+                            _logger.Error("Problem setting up session: ", e);
+                        }
                         Thread.Sleep(Settings.Default.pollRate);
                     }
 
                     while (CheckMissionThreshold(missionCount, inGame) && CheckTimeThreshold(runTime.ElapsedMilliseconds)) {
-                        session = UpdateInfo(serverInfoService, sessionDAO, playerDAO, missionDAO,
-                                             Settings.Default.armaServerAddress, Settings.Default.armaServerPort,
-                                             session, ref missionCount, ref inGame);
+                        try {
+                            session = UpdateInfo(serverInfoService, sessionDAO, playerDAO, missionDAO,
+                                                 Settings.Default.armaServerAddress, Settings.Default.armaServerPort,
+                                                 session, ref missionCount, ref inGame);
+                        } catch (MySqlException e) {
+                            _logger.Error("Problem updating session details: ", e);
+                        }
                         Thread.Sleep(Settings.Default.pollRate);
                     }
                 } catch (NoServerInfoException nsie) {
@@ -63,7 +71,6 @@ namespace BWServerLogger.Service {
             finally {
                 // Ensure disposable objects are disposed
                 if (connection != null) {
-                    connection.Close();
                     connection.Dispose();
                 }
                 if (playerDAO != null) {
@@ -162,6 +169,20 @@ namespace BWServerLogger.Service {
             missionDAO.UpdateMissionSession(missionSession);
 
             return missionSession;
+        }
+
+        private void UpdatePTSTMTSData(PlayerSessionToMissionSessionDAO pstmsDAO, MissionSession missionSession, ISet<PlayerSession> playerSessions) {
+            ISet<PlayerSessionToMissionSession> pstmses = pstmsDAO.GetOrCreatePSTMS(missionSession, playerSessions);
+
+            foreach (PlayerSessionToMissionSession pstms in pstmses) {
+                pstms.Updated = true;
+                pstms.Length += (Settings.Default.pollRate / 1000);
+                if (pstms.Played == false && CheckPlayedThreshold(pstms.Length)) {
+                    pstms.Played = true;
+                }
+            }
+
+            pstmsDAO.UpdatePSTMS(pstmses);
         }
 
         private bool UpdateServerRunningState(int serverState) {

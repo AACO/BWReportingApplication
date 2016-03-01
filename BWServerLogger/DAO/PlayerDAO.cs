@@ -49,9 +49,7 @@ namespace BWServerLogger.DAO {
                 playerSession.Session = session;
 
                 if (_cachedPlayerSessions.ContainsKey(player.Name)) {
-                    PlayerSession cachedPlayerSesion = new PlayerSession();
-                    _cachedPlayerSessions.TryGetValue(player.Name, out cachedPlayerSesion);
-                    playerSessions.Add(cachedPlayerSesion);
+                    _cachedPlayerSessions.TryGetValue(player.Name, out playerSession);
                 } else {
                     _getPlayerSession.Parameters[DatabaseUtil.NAME_KEY].Value = player.Name;
                     _getPlayerSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
@@ -95,8 +93,8 @@ namespace BWServerLogger.DAO {
                         playerSession.Id = GetLastInsertedId();
                     }
                     _cachedPlayerSessions.Add(player.Name, playerSession);
-                    playerSessions.Add(playerSession);
                 }
+                playerSessions.Add(playerSession);
             }
 
             return playerSessions;

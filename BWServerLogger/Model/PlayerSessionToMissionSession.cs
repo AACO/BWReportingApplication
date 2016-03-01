@@ -3,12 +3,12 @@
 namespace BWServerLogger.Model {
     public class PlayerSessionToMissionSession : BaseRelational {
 
-        public int PlayerId {
+        public int PlayerSessionId {
             get;
             set;
         }
 
-        public int SessionId {
+        public int MissionSessionId {
             get;
             set;
         }
@@ -20,8 +20,8 @@ namespace BWServerLogger.Model {
             int hashcode = 17;
 
             hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, base.GetHashCode());
-            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, PlayerId);
-            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, SessionId);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, PlayerSessionId);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, MissionSessionId);
 
             return hashcode;
         }
