@@ -22,9 +22,17 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
+    <SupportUrl>https://github.com/BourbonWarfare/BWReportingApplication</SupportUrl>
+    <ErrorReportUrl>https://github.com/BourbonWarfare/BWReportingApplication</ErrorReportUrl>
+    <TargetCulture>en-US</TargetCulture>
+    <ProductName>Bourbon Warfare Server Logger</ProductName>
+    <PublisherName>Mark Ruffner %28AACO%29</PublisherName>
+    <SuiteName>Bourbon Warfare Tool</SuiteName>
+    <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <ApplicationVersion>0.9.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
+    <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -36,6 +44,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -49,7 +58,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>bourbon.ico</ApplicationIcon>
+    <ApplicationIcon>bwicon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -73,6 +82,12 @@
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>BWServerLogger.LoggerUI</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>BWServerLogger.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net">
@@ -135,6 +150,7 @@
     <Compile Include="Service\ReportingService.cs" />
     <Compile Include="Service\ServerInfoService.cs" />
     <Compile Include="Util\HashUtil.cs" />
+    <Compile Include="Util\ThreadingConstants.cs" />
     <Compile Include="Util\TagUtil.cs" />
     <Compile Include="Util\ServerInfoConstants.cs" />
     <Compile Include="Util\DatabaseUtil.cs" />
@@ -150,6 +166,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="BWServerLogger.snk" />
     <None Include="Properties\DataSources\BWServerLogger.Model.Schedule.datasource" />
     <None Include="Properties\DataSources\System.Enum.datasource" />
     <None Include="Properties\Settings.settings">
@@ -168,7 +185,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bourbon.ico" />
+    <Content Include="bwicon.ico" />
     <Content Include="log-config.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

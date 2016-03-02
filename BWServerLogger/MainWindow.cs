@@ -35,7 +35,7 @@ namespace BWServerLogger {
                 ScheduleInput.Text = "Start Scheduler";
             }
 
-            if (IsReportRunning()) { //do this better
+            if (IsReportRunning()) {
                 ReportStatus.BackColor = Color.Green;
                 ReportingInput.Text = "Stop Reporting";
             } else {
@@ -55,6 +55,9 @@ namespace BWServerLogger {
 
         private void ForceReportRun() {
             try {
+                if (IsScheduleRunning()) {
+                    StopReportingJobThread();
+                }
                 _reportingThread = new Thread(new ReportingJob().ForceJobRun);
                 _reportingThread.Start();
             } catch (Exception e) {
@@ -120,6 +123,7 @@ namespace BWServerLogger {
         }
 
         private void Save_Click(object sender, EventArgs e) {
+            bool scheduleState = IsScheduleRunning();
             if (!IsReportRunning()) {
                 StopReportingJobThread();
             }
@@ -139,7 +143,7 @@ namespace BWServerLogger {
 
             Properties.Settings.Default.Save();
 
-            if (!IsScheduleRunning()) {
+            if (scheduleState && !IsScheduleRunning()) {
                 StartReportingJobThread();
             }
 
@@ -156,6 +160,8 @@ namespace BWServerLogger {
 
         private void ScheduleGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e) {
             scheduleBindingSource.Position = e.RowIndex;
+
+            bool scheduleState = IsScheduleRunning();
             if (!IsReportRunning()) {
                 StopReportingJobThread();
             }
@@ -172,40 +178,41 @@ namespace BWServerLogger {
                 }
             }
 
-            if (!IsScheduleRunning()) {
+            if (scheduleState && !IsScheduleRunning()) {
                 StartReportingJobThread();
             }
             MainWindow_Load(sender, e);
         }
 
         private void StartReportingJobThread() {
-            if (_reportingThread == null) {
+            if (_reportingThread == null || !_reportingThread.IsAlive) {
                 StartScheduleThread();
             }
         }
 
         private void StopReportingJobThread() {
-            if (_reportingThread == null) {
+            if (_reportingThread == null || !_reportingThread.IsAlive) {
                 _logger.Info("Cannot stop reporting thread, alreaded halted");
             } else {
                 try {
                     _reportingThread.Abort();
                     _reportingThread = null;
                 } catch (Exception e) {
-                    _logger.Error("Scheduler could not be stopped", e);
+                    _logger.Error("Reporting could not be stopped", e);
                 }
             }
         }
 
         private bool IsReportRunning() {
-            return _reportingThread != null && _reportingThread.ThreadState == ThreadState.Running;
+            return _reportingThread != null && _reportingThread.Name == ThreadingConstants.REPORTING;
         }
 
         private bool IsScheduleRunning() {
-            return _reportingThread != null;
+            return _reportingThread != null && _reportingThread.IsAlive;
         }
 
         private void ScheduleGrid_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e) {
+            bool scheduleState = IsScheduleRunning();
             if (!IsReportRunning()) {
                 StopReportingJobThread();
             }
@@ -222,7 +229,7 @@ namespace BWServerLogger {
                 }
             }
 
-            if (!IsScheduleRunning()) {
+            if (scheduleState && !IsScheduleRunning()) {
                 StartReportingJobThread();
             }
         }
@@ -237,12 +244,13 @@ namespace BWServerLogger {
         }
 
         private void ReportingInput_Click(object sender, EventArgs e) {
-            if (_reportingThread == null) { // Job has been halted
+            if (_reportingThread == null || !_reportingThread.IsAlive) { // Job has been halted
                 _reportingThread = new Thread(new ReportingJob().ForceJobRun);
                 _reportingThread.Start();
             } else {
-                if (_reportingThread.ThreadState == ThreadState.Running) { // Report running
+                if (IsReportRunning()) { // Report running
                     StopReportingJobThread();
+                    StartReportingJobThread();
                 } else { // waiting for next report run
                     ForceReportRun();
                 }

@@ -25,7 +25,7 @@ namespace BWServerLogger.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("30000")]
         public int pollRate {
             get {
                 return ((int)(this["pollRate"]));

@@ -15,12 +15,6 @@ namespace BWServerLogger.Job {
     class ReportingJob {
         private static readonly ILog _logger = LogManager.GetLogger(typeof(ReportingJob));
 
-        public string Name {
-            get {
-                return "Reporting Job";
-            }
-        }
-
         public ReportingJob() {
         }
 
@@ -36,17 +30,24 @@ namespace BWServerLogger.Job {
             try {
                 while (true) {
                     if (forced) {
+                        Thread.CurrentThread.Name = ThreadingConstants.REPORTING;
                         new ReportingService().StartReporting();
+                        Thread.CurrentThread.Name = ThreadingConstants.WAITING;
                         Thread.Sleep(GetRepetitionInterval());
                     } else {
+                        Thread.CurrentThread.Name = ThreadingConstants.WAITING;
                         Thread.Sleep(GetRepetitionInterval());
+                        Thread.CurrentThread.Name = ThreadingConstants.REPORTING;
                         new ReportingService().StartReporting();
                     }
                 }
             } catch (Exception e) {
                 if (e is ThreadAbortException) {
+                    Thread.CurrentThread.Name = ThreadingConstants.ABORTED;
                     _logger.Info("Reporting Job Thread was aborted.");
+                    
                 } else {
+                    Thread.CurrentThread.Name = ThreadingConstants.ERRORED;
                     _logger.Error("Problem running job.", e);
                 }
 
