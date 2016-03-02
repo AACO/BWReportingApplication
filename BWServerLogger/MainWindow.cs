@@ -92,7 +92,7 @@ namespace BWServerLogger {
                 _logger.Error("Problem getting schedule items", ex);
             } finally {
                 if (connection != null) {
-                    connection.Close();
+                    connection.Dispose();
                 }
             }
         }
@@ -155,29 +155,25 @@ namespace BWServerLogger {
         }
 
         private void ScheduleGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e) {
-            this.scheduleBindingSource.Position = e.RowIndex;
+            scheduleBindingSource.Position = e.RowIndex;
+            if (!IsReportRunning()) {
+                StopReportingJobThread();
+            }
+
+            MySqlConnection connection = null;
             try {
-                if (!IsReportRunning()) {
-                    StopReportingJobThread();
-                }
-
-                MySqlConnection connection = null;
-                try {
-                    connection = DatabaseUtil.OpenDataSource();
-                    new ScheduleDAO(connection).SaveScheduleItem((Schedule)scheduleBindingSource.Current);
-                } catch (MySqlException ex) {
-                    _logger.Error("Problem saving schedule items", ex);
-                } finally {
-                    if (connection != null) {
-                        connection.Close();
-                    }
-                }
-
-                if (!IsScheduleRunning()) {
-                    StartReportingJobThread();
-                }
+                connection = DatabaseUtil.OpenDataSource();
+                new ScheduleDAO(connection).SaveScheduleItem((Schedule)scheduleBindingSource.Current);
             } catch (MySqlException ex) {
-                _logger.Error("Problem getting schedule items", ex);
+                _logger.Error("Problem saving schedule items", ex);
+            } finally {
+                if (connection != null) {
+                    connection.Dispose();
+                }
+            }
+
+            if (!IsScheduleRunning()) {
+                StartReportingJobThread();
             }
             MainWindow_Load(sender, e);
         }
@@ -210,28 +206,24 @@ namespace BWServerLogger {
         }
 
         private void ScheduleGrid_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e) {
+            if (!IsReportRunning()) {
+                StopReportingJobThread();
+            }
+
+            MySqlConnection connection = null;
             try {
-                if (!IsReportRunning()) {
-                    StopReportingJobThread();
-                }
-
-                MySqlConnection connection = null;
-                try {
-                    connection = DatabaseUtil.OpenDataSource();
-                    new ScheduleDAO(connection).RemoveScheduleItem((Schedule)e.Row.DataBoundItem);
-                } catch (MySqlException ex) {
-                    _logger.Error("Problem removing schedule items", ex);
-                } finally {
-                    if (connection != null) {
-                        connection.Close();
-                    }
-                }
-
-                if (!IsScheduleRunning()) {
-                    StartReportingJobThread();
-                }
+                connection = DatabaseUtil.OpenDataSource();
+                new ScheduleDAO(connection).RemoveScheduleItem((Schedule)e.Row.DataBoundItem);
             } catch (MySqlException ex) {
-                _logger.Error("Problem getting schedule items", ex);
+                _logger.Error("Problem removing schedule items", ex);
+            } finally {
+                if (connection != null) {
+                    connection.Dispose();
+                }
+            }
+
+            if (!IsScheduleRunning()) {
+                StartReportingJobThread();
             }
         }
 
@@ -245,16 +237,13 @@ namespace BWServerLogger {
         }
 
         private void ReportingInput_Click(object sender, EventArgs e) {
-            if (_reportingThread == null) // Job has been halted
-            {
+            if (_reportingThread == null) { // Job has been halted
                 _reportingThread = new Thread(new ReportingJob().ForceJobRun);
                 _reportingThread.Start();
             } else {
-                if (_reportingThread.ThreadState == ThreadState.Running) // Report running
-                {
+                if (_reportingThread.ThreadState == ThreadState.Running) { // Report running
                     StopReportingJobThread();
-                } else // waiting for next report run
-                  {
+                } else { // waiting for next report run
                     ForceReportRun();
                 }
             }

@@ -97,6 +97,7 @@
   <ItemGroup>
     <Compile Include="DAO\BaseDAO.cs" />
     <Compile Include="DAO\MissionDAO.cs" />
+    <Compile Include="DAO\PlayerSessionToMissionSessionDAO.cs" />
     <Compile Include="DAO\PlayerDAO.cs" />
     <Compile Include="DAO\ScheduleDAO.cs" />
     <Compile Include="DAO\SessionDAO.cs" />
@@ -115,7 +116,9 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="LoggerUI.cs" />
+    <Compile Include="Model\BaseRelational.cs" />
     <Compile Include="Model\Index.cs" />
+    <Compile Include="Model\PlayerSessionToMissionSession.cs" />
     <Compile Include="Model\Table.cs" />
     <Compile Include="Model\IndexType.cs" />
     <Compile Include="Model\Column.cs" />

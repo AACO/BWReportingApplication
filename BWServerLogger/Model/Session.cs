@@ -1,12 +1,9 @@
-﻿using System;
+﻿using BWServerLogger.Util;
+
+using System;
 
 namespace BWServerLogger.Model {
-    public class Session {
-        public int Id {
-            get;
-            set;
-        }
-
+    public class Session : BaseDatabase {
         public string HostName {
             get;
             set;
@@ -37,11 +34,21 @@ namespace BWServerLogger.Model {
             set;
         }
 
-        public Session() {
+        public Session() : base() {
         }
 
         public override int GetHashCode() {
-            return Date.GetHashCode();
+            int hashcode = 17;
+
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, base.GetHashCode());
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, HostName);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Version);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, MaxPlayers);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, MaxPing);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, MinPing);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Date);
+
+            return hashcode;
         }
     }
 }

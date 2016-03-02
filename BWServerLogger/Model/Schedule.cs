@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BWServerLogger.Util;
+
+using System;
 
 namespace BWServerLogger.Model {
     public class Schedule : BaseDatabase {
@@ -21,16 +23,14 @@ namespace BWServerLogger.Model {
             TimeOfDay = TimeSpan.Parse(timeOfDay);
         }
 
-        public override bool Equals(object obj) {
-            return GetHashCode() == obj.GetHashCode();
-        }
-
         public override int GetHashCode() {
-            return 31 * TimeOfDay.GetHashCode() + (31 * DayOfTheWeek.GetHashCode() + 17);
-        }
+            int hashcode = 17;
 
-        public override string ToString() {
-            return "DayOfTheWeek: " + DayOfTheWeek.ToString() + ", TimeOfDay: " + TimeOfDay.ToString();
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, base.GetHashCode());
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, DayOfTheWeek);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, TimeOfDay);
+
+            return hashcode;
         }
     }
 }

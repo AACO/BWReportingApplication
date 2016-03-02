@@ -5,91 +5,99 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 using BWServerLogger.DAO;
 using BWServerLogger.Exceptions;
 using BWServerLogger.Model;
+using BWServerLogger.Properties;
 using BWServerLogger.Util;
 
 namespace BWServerLogger.Service {
-    class ReportingService : IDisposable {
+    class ReportingService {
         private static readonly ILog _logger = LogManager.GetLogger(typeof(ReportingService));
 
-        private int _missionCount = 0;
-        private bool _inGame = false;
-
-        private PlayerDAO _playerDAO;
-        private MissionDAO _missionDAO;
-        private SessionDAO _sessionDAO;
-        private MySqlConnection _connection;
-        private ServerInfoService _serverInfoService;
-
-        public ReportingService() : this(new ServerInfoService()) {
-        }
-
-        public ReportingService(ServerInfoService serverInfoService) {
-            _connection = DatabaseUtil.OpenDataSource();
-            _playerDAO = new PlayerDAO(_connection);
-            _missionDAO = new MissionDAO(_connection);
-            _sessionDAO = new SessionDAO(_connection);
-            _serverInfoService = serverInfoService;
-        }
-
-        ~ReportingService() {
-            Dispose();
-        }
-
-        public void Dispose() {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing) {
-            if (disposing) {
-                if (_connection != null) {
-                    _connection.Close();
-                    _connection.Dispose();
-                }
-                if (_playerDAO != null) {
-                    _playerDAO.Dispose();
-                }
-                if (_missionDAO != null) {
-                    _missionDAO.Dispose();
-                }
-                if (_sessionDAO != null) {
-                    _sessionDAO.Dispose();
-                }
-            }
+        public ReportingService() {
         }
 
         public void StartReporting() {
-            Session session = null;
+            // define DAO objects to interact with databases
+            MySqlConnection connection = null;
+            PlayerDAO playerDAO = null;
+            MissionDAO missionDAO = null;
+            SessionDAO sessionDAO = null;
+            PlayerSessionToMissionSessionDAO pstmsDAO = null;
 
-            Stopwatch runTime = new Stopwatch();
-            runTime.Start();
             try {
-                while (session == null && CheckTimeThreshold(runTime.ElapsedMilliseconds)) {
-                    session = SetUpSession(Properties.Settings.Default.armaServerAddress, Properties.Settings.Default.armaServerPort);
-                    System.Threading.Thread.Sleep(Properties.Settings.Default.pollRate);
-                }
+                // create DAO objects to interact with databases
+                connection = DatabaseUtil.OpenDataSource();
+                playerDAO = new PlayerDAO(connection);
+                missionDAO = new MissionDAO(connection);
+                sessionDAO = new SessionDAO(connection);
+                pstmsDAO = new PlayerSessionToMissionSessionDAO(connection);
+                
+                ServerInfoService serverInfoService = new ServerInfoService();
 
-                while (CheckMissionThreshold() && CheckTimeThreshold(runTime.ElapsedMilliseconds)) {
-                    session = UpdateInfo(Properties.Settings.Default.armaServerAddress, Properties.Settings.Default.armaServerPort, session);
-                    System.Threading.Thread.Sleep(Properties.Settings.Default.pollRate);
+                // variables needed to track session playthough
+                Session session = null;
+                int missionCount = 0;
+                bool inGame = false;
+
+                Stopwatch runTime = new Stopwatch();
+                runTime.Start();
+                try {
+                    while (session == null && CheckTimeThreshold(runTime.ElapsedMilliseconds)) {
+                        try {
+                            session = SetUpSession(serverInfoService, sessionDAO, Settings.Default.armaServerAddress,
+                                                   Settings.Default.armaServerPort, ref inGame);
+                        } catch (MySqlException e) {
+                            _logger.Error("Problem setting up session: ", e);
+                        }
+                        Thread.Sleep(Settings.Default.pollRate);
+                    }
+
+                    while (CheckMissionThreshold(missionCount, inGame) && CheckTimeThreshold(runTime.ElapsedMilliseconds)) {
+                        try {
+                            session = UpdateInfo(serverInfoService, sessionDAO, playerDAO, missionDAO, pstmsDAO,
+                                                 Settings.Default.armaServerAddress, Settings.Default.armaServerPort,
+                                                 session, ref missionCount, ref inGame);
+                        } catch (MySqlException e) {
+                            _logger.Error("Problem updating session details: ", e);
+                        }
+                        Thread.Sleep(Settings.Default.pollRate);
+                    }
+                } catch (NoServerInfoException nsie) {
+                    _logger.Error("Error reporting", nsie);
                 }
-            } catch (NoServerInfoException nsie) {
-                _logger.Error("Error reporting", nsie);
             }
-
+            finally {
+                // Ensure disposable objects are disposed
+                if (connection != null) {
+                    connection.Dispose();
+                }
+                if (playerDAO != null) {
+                    playerDAO.Dispose();
+                }
+                if (missionDAO != null) {
+                    missionDAO.Dispose();
+                }
+                if (sessionDAO != null) {
+                    sessionDAO.Dispose();
+                }
+                if (pstmsDAO != null) {
+                    pstmsDAO.Dispose();
+                }
+            }
         }
 
-        private Session SetUpSession(string host, int port) {
+        private Session SetUpSession(ServerInfoService serverInfoService, SessionDAO sessionDAO, string host, int port, ref bool inGame) {
             Session returnSession = null;
 
             // initial info grab
-            ServerInfo serverInfo = _serverInfoService.GetServerInfo(host, port);
+            ServerInfo serverInfo = serverInfoService.GetServerInfo(host, port);
+            inGame = UpdateServerRunningState(serverInfo.ServerState);
 
-            if (IsServerRunning(serverInfo.ServerState)) {
+            if (inGame) {
                 // create a session
                 Session session = new Session();
                 session.HostName = serverInfo.HostName;
@@ -97,7 +105,7 @@ namespace BWServerLogger.Service {
                 session.MaxPing = serverInfo.Ping;
                 session.MinPing = serverInfo.Ping;
                 session.MaxPlayers = serverInfo.NumPlayers;
-                session = _sessionDAO.CreateSession(session);
+                session = sessionDAO.CreateSession(session);
 
                 returnSession = session;
             }
@@ -105,19 +113,20 @@ namespace BWServerLogger.Service {
             return returnSession;
         }
 
-        private Session UpdateInfo(string host, int port, Session session) {
-            ServerInfo serverInfo = _serverInfoService.GetServerInfo(host, port);
-
-            if (IsServerRunning(serverInfo.ServerState)) {
-                UpdateSessionData(session, serverInfo);
-                MissionSession missionSession = UpdateMissionData(session, serverInfo);
-                UpdatePlayerData(session, serverInfo, missionSession);
-
+        private Session UpdateInfo(ServerInfoService serverInfoService, SessionDAO sessionDAO, PlayerDAO playerDAO, MissionDAO missionDAO, PlayerSessionToMissionSessionDAO pstmsDAO,
+                                   string host, int port, Session session, ref int missionCount, ref bool inGame) {
+            ServerInfo serverInfo = serverInfoService.GetServerInfo(host, port);
+            inGame = UpdateServerRunningState(serverInfo.ServerState);
+            if (inGame) {
+                UpdateSessionData(sessionDAO, session, serverInfo);
+                MissionSession missionSession = UpdateMissionData(missionDAO, session, serverInfo, ref missionCount);
+                ISet<PlayerSession> playerSessions = UpdatePlayerData(playerDAO, session, serverInfo, missionSession);
+                UpdatePTSTMTSData(pstmsDAO, missionSession, playerSessions);
             }
             return session;
         }
 
-        private void UpdateSessionData(Session session, ServerInfo serverInfo) {
+        private void UpdateSessionData(SessionDAO sessionDAO, Session session, ServerInfo serverInfo) {
             bool updateSession = false;
 
             if (session.MaxPing < serverInfo.Ping) {
@@ -134,42 +143,56 @@ namespace BWServerLogger.Service {
             }
 
             if (updateSession) {
-                _sessionDAO.UpdateSession(session);
+                sessionDAO.UpdateSession(session);
             }
         }
 
-        private void UpdatePlayerData(Session session, ServerInfo serverInfo, MissionSession missionSession) {
-            ISet<PlayerSession> playerSessions = _playerDAO.GetOrCreatePlayerSessions(serverInfo.Players, session);
+        private ISet<PlayerSession> UpdatePlayerData(PlayerDAO playerDAO, Session session, ServerInfo serverInfo, MissionSession missionSession) {
+            ISet<PlayerSession> playerSessions = playerDAO.GetOrCreatePlayerSessions(serverInfo.Players, session);
 
             foreach (PlayerSession playerSession in playerSessions) {
                 playerSession.Updated = true;
-                playerSession.Length += (Properties.Settings.Default.pollRate / 1000);
+                playerSession.Length += (Settings.Default.pollRate / 1000);
                 if (playerSession.Played == false && CheckPlayedThreshold(playerSession.Length)) {
                     playerSession.Played = true;
                 }
             }
 
-            _playerDAO.UpdatePlayerSessions(playerSessions);
+            playerDAO.UpdatePlayerSessions(playerSessions);
+            return playerSessions;
         }
 
-        private MissionSession UpdateMissionData(Session session, ServerInfo serverInfo) {
-            MissionSession missionSession = _missionDAO.GetOrCreateMissionSession(serverInfo.MapName, serverInfo.Mission, session);
+        private MissionSession UpdateMissionData(MissionDAO missionDAO, Session session, ServerInfo serverInfo, ref int missionCount) {
+            MissionSession missionSession = missionDAO.GetOrCreateMissionSession(serverInfo.MapName, serverInfo.Mission, session);
 
             missionSession.Updated = true;
-            missionSession.Length += (Properties.Settings.Default.pollRate / 1000);
+            missionSession.Length += (Settings.Default.pollRate / 1000);
             if (missionSession.Played == false && CheckPlayedThreshold(missionSession.Length)) {
                 missionSession.Played = true;
-                _missionCount++;
+                missionCount++;
             }
 
-            _missionDAO.UpdateMissionSession(missionSession);
+            missionDAO.UpdateMissionSession(missionSession);
 
             return missionSession;
         }
 
-        private bool IsServerRunning(int serverState) {
-            _inGame = serverState == ServerInfoConstants.IN_GAME;
-            return _inGame;
+        private void UpdatePTSTMTSData(PlayerSessionToMissionSessionDAO pstmsDAO, MissionSession missionSession, ISet<PlayerSession> playerSessions) {
+            ISet<PlayerSessionToMissionSession> pstmses = pstmsDAO.GetOrCreatePSTMS(missionSession, playerSessions);
+
+            foreach (PlayerSessionToMissionSession pstms in pstmses) {
+                pstms.Updated = true;
+                pstms.Length += (Settings.Default.pollRate / 1000);
+                if (pstms.Played == false && CheckPlayedThreshold(pstms.Length)) {
+                    pstms.Played = true;
+                }
+            }
+
+            pstmsDAO.UpdatePSTMS(pstmses);
+        }
+
+        private bool UpdateServerRunningState(int serverState) {
+            return serverState == ServerInfoConstants.IN_GAME;
         }
 
         private bool CheckPlayedThreshold(int length) {
@@ -180,9 +203,9 @@ namespace BWServerLogger.Service {
             return elapsedTime < Properties.Settings.Default.runTimeThreshold;
         }
 
-        private bool CheckMissionThreshold() {
-            return _missionCount < Properties.Settings.Default.missionThreshold ||
-                (_missionCount == Properties.Settings.Default.missionThreshold && _inGame);
+        private bool CheckMissionThreshold(int missionCount, bool inGame) {
+            return missionCount < Properties.Settings.Default.missionThreshold ||
+                (missionCount == Properties.Settings.Default.missionThreshold && inGame);
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿namespace BWServerLogger.Model {
-    public class PlayerSession : BaseDatabase {
+﻿using BWServerLogger.Util;
+
+namespace BWServerLogger.Model {
+    public class PlayerSession : BaseRelational {
 
         public Player Player {
             get;
@@ -11,21 +13,17 @@
             set;
         }
 
-        public int Length {
-            get;
-            set;
-        }
-
-        public bool Played {
-            get;
-            set;
-        }
-
         public PlayerSession() : base() {
         }
 
         public override int GetHashCode() {
-            return 31 * Player.GetHashCode() + (31 * Session.GetHashCode() + 17);
+            int hashcode = 17;
+
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, base.GetHashCode());
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Player);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Session);
+
+            return hashcode;
         }
     }
 }

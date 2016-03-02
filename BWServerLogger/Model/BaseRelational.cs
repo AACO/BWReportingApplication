@@ -1,30 +1,28 @@
 ﻿using BWServerLogger.Util;
 
 namespace BWServerLogger.Model {
-    public class Mission : BaseDatabase {
-        public string Name {
+    public abstract class BaseRelational : BaseDatabase {
+        public int Length {
             get;
             set;
         }
 
-        public Map Map {
+        public bool Played {
             get;
             set;
         }
 
-        public Mission() : base() {
-        }
-
-        public Mission(string name) : this() {
-            Name = name;
+        public BaseRelational() : base() {
+            Length = 0;
+            Played = false;
         }
 
         public override int GetHashCode() {
             int hashcode = 17;
 
             hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, base.GetHashCode());
-            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Name);
-            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Map);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Length);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Played);
 
             return hashcode;
         }

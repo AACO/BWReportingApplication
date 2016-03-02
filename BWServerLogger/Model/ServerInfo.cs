@@ -249,5 +249,44 @@ namespace BWServerLogger.Model {
             get;
             set;
         }
+
+        public override int GetHashCode() {
+            int hashcode = 17;
+
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, GameVersion);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, HostName);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, MapName);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Game);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, NumPlayers);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, MaxPlayers);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Password);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, RequiredVersion);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, RequiredBuildVersion);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, BattleEye);
+            hashcode = HashUtil.SimpleCollectionHashBuilderHelper(hashcode, Players);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Mission);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Ping);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, ServerState);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Difficulty);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, EqualModRequired);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Locked);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, VerifySignatures);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Language);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Dedicated);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, LongLat);
+            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Platform);
+
+            return hashcode;
+        }
+
+        public override bool Equals(object obj) {
+            bool equals = false;
+
+            if (obj is ServerInfo) {
+                equals = GetHashCode() == obj.GetHashCode();
+            }
+
+            return equals;
+        }
     }
 }

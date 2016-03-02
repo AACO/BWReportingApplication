@@ -8,6 +8,7 @@ using BWServerLogger.Util;
 
 namespace BWServerLogger.DAO {
     public class MissionDAO : BaseDAO {
+        private MissionSession _cachedMissionSession;
         private MySqlCommand _getMap;
         private MySqlCommand _addMap;
         private MySqlCommand _getMissionSession;
@@ -52,63 +53,69 @@ namespace BWServerLogger.DAO {
             missionSession.Mission.Map = new Map(mapName);
             missionSession.Session = session;
 
-            _getMissionSession.Parameters[DatabaseUtil.NAME_KEY].Value = missionSession.Mission.Name;
-            _getMissionSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
+            if (IsMissionSessionCached(_cachedMissionSession, missionSession)) {
+                missionSession = _cachedMissionSession;
+            } else {
+                _getMissionSession.Parameters[DatabaseUtil.NAME_KEY].Value = missionSession.Mission.Name;
+                _getMissionSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
 
-            MySqlDataReader getMissionResult = _getMissionSession.ExecuteReader();
+                MySqlDataReader getMissionResult = _getMissionSession.ExecuteReader();
 
-            if (getMissionResult.HasRows) {
-                bool relinkMap = false;
+                if (getMissionResult.HasRows) {
+                    bool relinkMap = false;
 
-                getMissionResult.Read();
-                missionSession.Mission.Id = getMissionResult.GetInt32(0);
+                    getMissionResult.Read();
+                    missionSession.Mission.Id = getMissionResult.GetInt32(0);
 
-                if (missionSession.Mission.Map.Name.Equals(getMissionResult.GetString(5))) {
-                    missionSession.Mission.Map.Id = getMissionResult.GetInt32(4);
+                    if (missionSession.Mission.Map.Name.Equals(getMissionResult.GetString(5))) {
+                        missionSession.Mission.Map.Id = getMissionResult.GetInt32(4);
+                    } else {
+                        relinkMap = true;
+                    }
+
+                    if (getMissionResult.IsDBNull(1)) {
+                        getMissionResult.Close();
+
+                        _addMissionSession.Parameters[DatabaseUtil.MISSION_ID_KEY].Value = missionSession.Mission.Id;
+                        _addMissionSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
+                        _addMissionSession.ExecuteNonQuery();
+
+                        missionSession.Id = GetLastInsertedId();
+                    } else {
+                        missionSession.Id = getMissionResult.GetInt32(1);
+                        missionSession.Length = getMissionResult.GetInt32(2);
+                        missionSession.Played = getMissionResult.GetBoolean(3);
+                        getMissionResult.Close();
+                    }
+
+                    if (relinkMap) {
+                        missionSession.Mission.Map.Id = GetMapId(missionSession.Mission.Map.Name);
+                        _updateMission.Parameters[DatabaseUtil.MISSION_ID_KEY].Value = missionSession.Mission.Id;
+                        _updateMission.Parameters[DatabaseUtil.MAP_ID_KEY].Value = missionSession.Mission.Map.Id;
+
+                        _updateMission.ExecuteNonQuery();
+                    }
                 } else {
-                    relinkMap = true;
-                }
-
-                if (getMissionResult.IsDBNull(1)) {
                     getMissionResult.Close();
+
+                    missionSession.Mission.Map.Id = GetMapId(missionSession.Mission.Map.Name);
+
+                    _addMission.Parameters[DatabaseUtil.NAME_KEY].Value = missionSession.Mission.Name;
+                    _addMission.Parameters[DatabaseUtil.MAP_ID_KEY].Value = missionSession.Mission.Map.Id;
+                    _addMission.ExecuteNonQuery();
+
+                    missionSession.Mission.Id = GetLastInsertedId();
 
                     _addMissionSession.Parameters[DatabaseUtil.MISSION_ID_KEY].Value = missionSession.Mission.Id;
                     _addMissionSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
                     _addMissionSession.ExecuteNonQuery();
 
                     missionSession.Id = GetLastInsertedId();
-                } else {
-                    missionSession.Id = getMissionResult.GetInt32(1);
-                    missionSession.Length = getMissionResult.GetInt32(2);
-                    missionSession.Played = getMissionResult.GetBoolean(3);
-                    getMissionResult.Close();
+
+                    _cachedMissionSession = missionSession;
                 }
-
-                if (relinkMap) {
-                    missionSession.Mission.Map.Id = GetMapId(missionSession.Mission.Map.Name);
-                    _updateMission.Parameters[DatabaseUtil.MISSION_ID_KEY].Value = missionSession.Mission.Id;
-                    _updateMission.Parameters[DatabaseUtil.MAP_ID_KEY].Value = missionSession.Mission.Map.Id;
-
-                    _updateMission.ExecuteNonQuery();
-                }
-            } else {
-                getMissionResult.Close();
-
-                missionSession.Mission.Map.Id = GetMapId(missionSession.Mission.Map.Name);
-
-                _addMission.Parameters[DatabaseUtil.NAME_KEY].Value = missionSession.Mission.Name;
-                _addMission.Parameters[DatabaseUtil.MAP_ID_KEY].Value = missionSession.Mission.Map.Id;
-                _addMission.ExecuteNonQuery();
-
-                missionSession.Mission.Id = GetLastInsertedId();
-
-                _addMissionSession.Parameters[DatabaseUtil.MISSION_ID_KEY].Value = missionSession.Mission.Id;
-                _addMissionSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
-                _addMissionSession.ExecuteNonQuery();
-
-                missionSession.Id = GetLastInsertedId();
             }
-
+            
             return missionSession;
         }
 
@@ -241,6 +248,14 @@ namespace BWServerLogger.DAO {
             _updateMission.Parameters.Add(new MySqlParameter(DatabaseUtil.MAP_ID_KEY, MySqlDbType.Int32));
             _updateMission.Parameters.Add(new MySqlParameter(DatabaseUtil.MISSION_ID_KEY, MySqlDbType.Int32));
             _updateMission.Prepare();
+        }
+
+        private bool IsMissionSessionCached(MissionSession cachedMissionSession, MissionSession lookupMissionSession) {
+            return cachedMissionSession != null && cachedMissionSession.Mission != null &&
+                cachedMissionSession.Session != null && cachedMissionSession.Mission.Map != null &&
+                cachedMissionSession.Mission.Name == lookupMissionSession.Mission.Name &&
+                cachedMissionSession.Session.Id == lookupMissionSession.Session.Id &&
+                cachedMissionSession.Mission.Map.Name == lookupMissionSession.Mission.Map.Name;
         }
     }
 }

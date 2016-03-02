@@ -8,7 +8,7 @@ using BWServerLogger.Util;
 
 namespace BWServerLogger.DAO {
     public class PlayerDAO : BaseDAO {
-        private Dictionary<PlayerSession, PlayerSession> _cachedPlayerSessions; // refactor this, just map to name instead of hash code hack
+        private Dictionary<string, PlayerSession> _cachedPlayerSessions;
         private MySqlCommand _getPlayerSession;
         private MySqlCommand _addPlayerSession;
         private MySqlCommand _addPlayer;
@@ -16,7 +16,7 @@ namespace BWServerLogger.DAO {
         private MySqlCommand _updatePlayer;
 
         public PlayerDAO(MySqlConnection connection) : base(connection) {
-            _cachedPlayerSessions = new Dictionary<PlayerSession, PlayerSession>();
+            _cachedPlayerSessions = new Dictionary<string, PlayerSession>();
         }
 
         protected override void Dispose(bool disposing) {
@@ -48,12 +48,9 @@ namespace BWServerLogger.DAO {
                 playerSession.Player = player;
                 playerSession.Session = session;
 
-                if (_cachedPlayerSessions.ContainsKey(playerSession)) {
-                    PlayerSession cachedPlayerSesion = new PlayerSession();
-                    _cachedPlayerSessions.TryGetValue(playerSession, out cachedPlayerSesion);
-                    playerSessions.Add(cachedPlayerSesion);
+                if (_cachedPlayerSessions.ContainsKey(player.Name)) {
+                    _cachedPlayerSessions.TryGetValue(player.Name, out playerSession);
                 } else {
-
                     _getPlayerSession.Parameters[DatabaseUtil.NAME_KEY].Value = player.Name;
                     _getPlayerSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
 
@@ -95,9 +92,9 @@ namespace BWServerLogger.DAO {
 
                         playerSession.Id = GetLastInsertedId();
                     }
-                    _cachedPlayerSessions.Add(playerSession, playerSession);
-                    playerSessions.Add(playerSession);
+                    _cachedPlayerSessions.Add(player.Name, playerSession);
                 }
+                playerSessions.Add(playerSession);
             }
 
             return playerSessions;
