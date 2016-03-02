@@ -3,6 +3,7 @@
 using MySql.Data.MySqlClient;
 
 using System;
+using System.Runtime.Remoting.Contexts;
 using System.Threading;
 
 using BWServerLogger.Exceptions;
@@ -15,43 +16,40 @@ namespace BWServerLogger.Job {
     class ReportingJob {
         private static readonly ILog _logger = LogManager.GetLogger(typeof(ReportingJob));
 
+        public bool IsReporting { get; private set; }
+
         public ReportingJob() {
+            IsReporting = false;
         }
 
-        public void StartJob() {
-            DoJob(false);
-        }
-
-        public void ForceJobRun() {
-            DoJob(true);
-        }
-
-        private void DoJob(bool forced) {
+        public void DoJob(object parameter) {
+            bool forced = (bool)parameter;
             try {
                 while (true) {
                     if (forced) {
-                        Thread.CurrentThread.Name = ThreadingConstants.REPORTING;
-                        new ReportingService().StartReporting();
-                        Thread.CurrentThread.Name = ThreadingConstants.WAITING;
+                        StartReporting();
                         Thread.Sleep(GetRepetitionInterval());
                     } else {
-                        Thread.CurrentThread.Name = ThreadingConstants.WAITING;
                         Thread.Sleep(GetRepetitionInterval());
-                        Thread.CurrentThread.Name = ThreadingConstants.REPORTING;
-                        new ReportingService().StartReporting();
+                        StartReporting();
                     }
                 }
             } catch (Exception e) {
+                IsReporting = false;
                 if (e is ThreadAbortException) {
-                    Thread.CurrentThread.Name = ThreadingConstants.ABORTED;
                     _logger.Info("Reporting Job Thread was aborted.");
                     
                 } else {
-                    Thread.CurrentThread.Name = ThreadingConstants.ERRORED;
                     _logger.Error("Problem running job.", e);
                 }
 
             }
+        }
+
+        private void StartReporting() {
+            IsReporting = true;
+            new ReportingService().StartReporting();
+            IsReporting = false;
         }
 
         private TimeSpan GetRepetitionInterval() {

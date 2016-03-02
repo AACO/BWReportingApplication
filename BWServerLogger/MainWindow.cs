@@ -19,10 +19,13 @@ namespace BWServerLogger {
         private static readonly ILog _logger = LogManager.GetLogger(typeof(MainWindow));
 
         private bool _closeThreads = true;
+        private readonly ReportingJob _reportingJob = new ReportingJob();
         private Thread _reportingThread;
+        
 
         public MainWindow() {
-            StartScheduleThread();
+            _reportingThread = new Thread(_reportingJob.DoJob);
+            StartScheduleThread(false);
             InitializeComponent();
         }
 
@@ -44,24 +47,44 @@ namespace BWServerLogger {
             }
         }
 
-        private void StartScheduleThread() {
-            try {
-                _reportingThread = new Thread(new ReportingJob().StartJob);
-                _reportingThread.Start();
-            } catch (Exception e) {
-                _logger.Error("Scheduler could not be constructed or started", e);
+        private void StartScheduleThread(bool forced) {
+            if (!_reportingThread.IsAlive || forced) {
+                try {
+                    _reportingThread = new Thread(_reportingJob.DoJob);
+                    _reportingThread.Start(forced);
+                } catch (Exception e) {
+                    _logger.Error("Scheduler could not be constructed or started", e);
+                }
+            } else {
+                _logger.Warn("Attempting to start schedule thread while already running");
             }
         }
 
-        private void ForceReportRun() {
-            try {
-                if (IsScheduleRunning()) {
-                    StopReportingJobThread();
+        private void StopScheduleThread() {
+            if (!_reportingThread.IsAlive) {
+                _logger.Info("Cannot stop reporting thread, alreaded halted");
+            } else {
+                try {
+                    _reportingThread.Abort();
+                    _reportingThread.Join();
+                } catch (Exception e) {
+                    _logger.Error("Reporting could not be stopped", e);
                 }
-                _reportingThread = new Thread(new ReportingJob().ForceJobRun);
-                _reportingThread.Start();
-            } catch (Exception e) {
-                _logger.Error("Could not force report to run", e);
+            }
+        }
+
+        private bool PreSaveStepAndState() {
+            bool scheduleState = IsScheduleRunning();
+            if (!IsReportRunning()) {
+                StopScheduleThread();
+            }
+
+            return scheduleState;
+        }
+
+        private void PostSaveStep(bool scheduleState) {
+            if (scheduleState && !IsScheduleRunning()) {
+                StartScheduleThread(false);
             }
         }
 
@@ -102,15 +125,15 @@ namespace BWServerLogger {
 
         private void MainWindow_FormClosed(object sender, FormClosedEventArgs e) {
             if (_closeThreads) {
-                StopReportingJobThread();
+                StopScheduleThread();
             }
         }
 
         private void ScheduleInput_Click(object sender, EventArgs e) {
             if (IsScheduleRunning()) {
-                StopReportingJobThread();
+                StopScheduleThread();
             } else {
-                StartReportingJobThread();
+                StartScheduleThread(false);
             }
         }
 
@@ -123,10 +146,7 @@ namespace BWServerLogger {
         }
 
         private void Save_Click(object sender, EventArgs e) {
-            bool scheduleState = IsScheduleRunning();
-            if (!IsReportRunning()) {
-                StopReportingJobThread();
-            }
+            bool scheduleState = PreSaveStepAndState();
 
             Properties.Settings.Default.mySQLServerAddress = MySQLServerAddressInput.Text;
             Properties.Settings.Default.mySQLServerPort = Convert.ToString(MySQLServerPortInput.Value);
@@ -142,10 +162,7 @@ namespace BWServerLogger {
             Properties.Settings.Default.retryTimeLimit = ToMilliseconds(serverReconnectLimitInput.Value);
 
             Properties.Settings.Default.Save();
-
-            if (scheduleState && !IsScheduleRunning()) {
-                StartReportingJobThread();
-            }
+            PostSaveStep(scheduleState);
 
             MainWindow_Load(sender, e);
         }
@@ -161,10 +178,7 @@ namespace BWServerLogger {
         private void ScheduleGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e) {
             scheduleBindingSource.Position = e.RowIndex;
 
-            bool scheduleState = IsScheduleRunning();
-            if (!IsReportRunning()) {
-                StopReportingJobThread();
-            }
+            bool scheduleState = PreSaveStepAndState();
 
             MySqlConnection connection = null;
             try {
@@ -178,44 +192,20 @@ namespace BWServerLogger {
                 }
             }
 
-            if (scheduleState && !IsScheduleRunning()) {
-                StartReportingJobThread();
-            }
+            PostSaveStep(scheduleState);
             MainWindow_Load(sender, e);
         }
 
-        private void StartReportingJobThread() {
-            if (_reportingThread == null || !_reportingThread.IsAlive) {
-                StartScheduleThread();
-            }
-        }
-
-        private void StopReportingJobThread() {
-            if (_reportingThread == null || !_reportingThread.IsAlive) {
-                _logger.Info("Cannot stop reporting thread, alreaded halted");
-            } else {
-                try {
-                    _reportingThread.Abort();
-                    _reportingThread = null;
-                } catch (Exception e) {
-                    _logger.Error("Reporting could not be stopped", e);
-                }
-            }
-        }
-
         private bool IsReportRunning() {
-            return _reportingThread != null && _reportingThread.Name == ThreadingConstants.REPORTING;
+            return _reportingJob.IsReporting;
         }
 
         private bool IsScheduleRunning() {
-            return _reportingThread != null && _reportingThread.IsAlive;
+            return _reportingThread.IsAlive;
         }
 
         private void ScheduleGrid_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e) {
-            bool scheduleState = IsScheduleRunning();
-            if (!IsReportRunning()) {
-                StopReportingJobThread();
-            }
+            bool scheduleState = PreSaveStepAndState();
 
             MySqlConnection connection = null;
             try {
@@ -229,9 +219,7 @@ namespace BWServerLogger {
                 }
             }
 
-            if (scheduleState && !IsScheduleRunning()) {
-                StartReportingJobThread();
-            }
+            PostSaveStep(scheduleState);
         }
 
         private void CloseInput_Click(object sender, EventArgs e) {
@@ -245,14 +233,14 @@ namespace BWServerLogger {
 
         private void ReportingInput_Click(object sender, EventArgs e) {
             if (_reportingThread == null || !_reportingThread.IsAlive) { // Job has been halted
-                _reportingThread = new Thread(new ReportingJob().ForceJobRun);
-                _reportingThread.Start();
+                StartScheduleThread(true);
             } else {
                 if (IsReportRunning()) { // Report running
-                    StopReportingJobThread();
-                    StartReportingJobThread();
+                    StopScheduleThread();
+                    StartScheduleThread(false);
                 } else { // waiting for next report run
-                    ForceReportRun();
+                    StopScheduleThread();
+                    StartScheduleThread(true);
                 }
             }
         }
