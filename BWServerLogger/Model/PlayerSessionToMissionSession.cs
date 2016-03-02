@@ -3,15 +3,8 @@
 namespace BWServerLogger.Model {
     public class PlayerSessionToMissionSession : BaseRelational {
 
-        public int PlayerSessionId {
-            get;
-            set;
-        }
-
-        public int MissionSessionId {
-            get;
-            set;
-        }
+        public int PlayerSessionId { get; set; }
+        public int MissionSessionId { get; set; }
 
         public PlayerSessionToMissionSession() : base() {
         }

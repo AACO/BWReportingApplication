@@ -4,30 +4,11 @@ using System.Collections.Generic;
 
 namespace BWServerLogger.Model {
     public class Index {
-        public string Name {
-            get;
-            private set;
-        }
-
-        public IList<string> Columns {
-            get;
-            private set;
-        }
-
-        public IndexType Type {
-            get;
-            private set;
-        }
-
-        public string ReferenceTable {
-            get;
-            private set;
-        }
-
-        public IList<string> ReferenceColumns {
-            get;
-            private set;
-        }
+        public string Name { get; private set; }
+        public IList<string> Columns { get; private set; }
+        public IndexType Type { get; private set; }
+        public string ReferenceTable { get; private set; }
+        public IList<string> ReferenceColumns { get; private set; }
 
         public Index(string column) {
             Columns = new List<string>();

@@ -5,20 +5,9 @@ using System.Text;
 
 namespace BWServerLogger.Model {
     public class Table {
-        public string Name {
-            get;
-            private set;
-        }
-
-        public ISet<Column> Columns {
-            get;
-            private set;
-        }
-
-        public IList<Index> Indices {
-            get;
-            private set;
-        }
+        public string Name { get; private set; }
+        public ISet<Column> Columns { get; private set; }
+        public IList<Index> Indices { get; private set; }
 
         public Table(string name, ISet<Column> cols, IList<Index> indices) {
             Name = name;

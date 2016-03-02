@@ -4,15 +4,8 @@ using System;
 
 namespace BWServerLogger.Model {
     public class Schedule : BaseDatabase {
-        public DayOfWeek DayOfTheWeek {
-            get;
-            set;
-        }
-
-        public TimeSpan TimeOfDay {
-            get;
-            set;
-        }
+        public DayOfWeek DayOfTheWeek { get; set; }
+        public TimeSpan TimeOfDay { get; set; }
 
         public Schedule() : base() {
         }

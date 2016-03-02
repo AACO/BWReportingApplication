@@ -2,30 +2,11 @@
 
 namespace BWServerLogger.Model {
     public class Column {
-        public string Field {
-            get;
-            private set;
-        }
-
-        public string Type {
-            get;
-            private set;
-        }
-
-        public bool Null {
-            get;
-            private set;
-        }
-
-        public string Default {
-            get;
-            private set;
-        }
-
-        public bool AutoIncrement {
-            get;
-            private set;
-        }
+        public string Field { get; private set; }
+        public string Type { get; private set; }
+        public bool Null { get; private set; }
+        public string Default { get; private set; }
+        public bool AutoIncrement { get; private set; }
 
         public Column(string field, string type, string isNull, string defaultValue, string autoIncrement) {
             Field = field;

@@ -2,15 +2,8 @@
 
 namespace BWServerLogger.Model {
     public class Mission : BaseDatabase {
-        public string Name {
-            get;
-            set;
-        }
-
-        public Map Map {
-            get;
-            set;
-        }
+        public string Name { get; set; }
+        public Map Map { get; set; }
 
         public Mission() : base() {
         }

@@ -2,15 +2,8 @@
 
 namespace BWServerLogger.Model {
     public abstract class BaseRelational : BaseDatabase {
-        public int Length {
-            get;
-            set;
-        }
-
-        public bool Played {
-            get;
-            set;
-        }
+        public int Length { get; set; }
+        public bool Played { get; set; }
 
         public BaseRelational() : base() {
             Length = 0;
