@@ -100,7 +100,7 @@ namespace BWServerLogger.DAO {
         protected override void SetupPreparedStatements(MySqlConnection connection) {
             StringBuilder getPSTMSSelect = new StringBuilder();
             getPSTMSSelect.Append("select id, length, played ");
-            getPSTMSSelect.Append("from player_to_session_to_mission_to_session");
+            getPSTMSSelect.Append("from player_to_session_to_mission_to_session ");
             getPSTMSSelect.Append("where player_to_session_id = ");
             getPSTMSSelect.Append(DatabaseUtil.PLAYER_TO_SESSION_ID_KEY);
             getPSTMSSelect.Append(" and mission_to_session_id = ");

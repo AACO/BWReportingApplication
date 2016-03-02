@@ -26,6 +26,7 @@ namespace BWServerLogger.Service {
             PlayerDAO playerDAO = null;
             MissionDAO missionDAO = null;
             SessionDAO sessionDAO = null;
+            PlayerSessionToMissionSessionDAO pstmsDAO = null;
 
             try {
                 // create DAO objects to interact with databases
@@ -33,6 +34,7 @@ namespace BWServerLogger.Service {
                 playerDAO = new PlayerDAO(connection);
                 missionDAO = new MissionDAO(connection);
                 sessionDAO = new SessionDAO(connection);
+                pstmsDAO = new PlayerSessionToMissionSessionDAO(connection);
                 
                 ServerInfoService serverInfoService = new ServerInfoService();
 
@@ -56,7 +58,7 @@ namespace BWServerLogger.Service {
 
                     while (CheckMissionThreshold(missionCount, inGame) && CheckTimeThreshold(runTime.ElapsedMilliseconds)) {
                         try {
-                            session = UpdateInfo(serverInfoService, sessionDAO, playerDAO, missionDAO,
+                            session = UpdateInfo(serverInfoService, sessionDAO, playerDAO, missionDAO, pstmsDAO,
                                                  Settings.Default.armaServerAddress, Settings.Default.armaServerPort,
                                                  session, ref missionCount, ref inGame);
                         } catch (MySqlException e) {
@@ -81,6 +83,9 @@ namespace BWServerLogger.Service {
                 }
                 if (sessionDAO != null) {
                     sessionDAO.Dispose();
+                }
+                if (pstmsDAO != null) {
+                    pstmsDAO.Dispose();
                 }
             }
         }
@@ -108,14 +113,15 @@ namespace BWServerLogger.Service {
             return returnSession;
         }
 
-        private Session UpdateInfo(ServerInfoService serverInfoService, SessionDAO sessionDAO, PlayerDAO playerDAO, MissionDAO missionDAO, string host, int port, Session session, ref int missionCount, ref bool inGame) {
+        private Session UpdateInfo(ServerInfoService serverInfoService, SessionDAO sessionDAO, PlayerDAO playerDAO, MissionDAO missionDAO, PlayerSessionToMissionSessionDAO pstmsDAO,
+                                   string host, int port, Session session, ref int missionCount, ref bool inGame) {
             ServerInfo serverInfo = serverInfoService.GetServerInfo(host, port);
             inGame = UpdateServerRunningState(serverInfo.ServerState);
             if (inGame) {
                 UpdateSessionData(sessionDAO, session, serverInfo);
                 MissionSession missionSession = UpdateMissionData(missionDAO, session, serverInfo, ref missionCount);
-                ISet<PlayerSession> playerSession = UpdatePlayerData(playerDAO, session, serverInfo, missionSession);
-
+                ISet<PlayerSession> playerSessions = UpdatePlayerData(playerDAO, session, serverInfo, missionSession);
+                UpdatePTSTMTSData(pstmsDAO, missionSession, playerSessions);
             }
             return session;
         }
