@@ -3,15 +3,8 @@
 namespace BWServerLogger.Model {
     public class MissionSession : BaseRelational {
 
-        public Mission Mission {
-            get;
-            set;
-        }
-
-        public Session Session {
-            get;
-            set;
-        }
+        public Mission Mission { get; set; }
+        public Session Session { get; set; }
 
         public MissionSession() : base() {
         }

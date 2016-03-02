@@ -54,7 +54,6 @@ namespace BWServerLogger.DAO {
                     _getPSTMS.Parameters[DatabaseUtil.MISSION_TO_SESSION_ID_KEY].Value = missionSession.Id;
 
                     MySqlDataReader getPTSTMTSResult = _getPSTMS.ExecuteReader();
-
                     if (getPTSTMTSResult.HasRows) {
                         getPTSTMTSResult.Read();
 
@@ -73,8 +72,6 @@ namespace BWServerLogger.DAO {
 
                         pstms.Id = GetLastInsertedId();
                     }
-
-                    
                 }
                 pstmses.Add(pstms);
             }

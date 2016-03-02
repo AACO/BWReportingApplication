@@ -3,15 +3,8 @@
 namespace BWServerLogger.Model {
     public class PlayerSession : BaseRelational {
 
-        public Player Player {
-            get;
-            set;
-        }
-
-        public Session Session {
-            get;
-            set;
-        }
+        public Player Player { get; set; }
+        public Session Session { get; set; }
 
         public PlayerSession() : base() {
         }

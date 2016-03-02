@@ -15,11 +15,7 @@ namespace BWServerLogger.Model {
                 playerName = TagUtil.StripTags(value);
             }
         }
-
-        public bool HasClanTag {
-            get;
-            set;
-        }
+        public bool HasClanTag { get; set; }
 
         public Player() : base() {
             HasClanTag = false;

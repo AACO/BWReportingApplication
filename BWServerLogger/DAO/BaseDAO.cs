@@ -3,11 +3,8 @@
 using MySql.Data.MySqlClient;
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 using BWServerLogger.Exceptions;
-using BWServerLogger.Model;
 
 namespace BWServerLogger.DAO {
     public abstract class BaseDAO : IDisposable {

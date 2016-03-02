@@ -2,15 +2,8 @@
 
 namespace BWServerLogger.Model {
     public class Map : BaseDatabase {
-        public string Name {
-            get;
-            set;
-        }
-
-        public bool Active {
-            get;
-            set;
-        }
+        public string Name { get; set; }
+        public bool Active { get; set; }
 
         public Map() : base() {
             Active = true;

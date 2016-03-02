@@ -6,6 +6,29 @@ using BWServerLogger.Util;
 
 namespace BWServerLogger.Model {
     public class ServerInfo {
+        public string GameVersion { get; set; }
+        public string HostName { get; set; }
+        public string MapName { get; set; }
+        public string Game { get; set; }
+        public int NumPlayers { get; set; }
+        public int MaxPlayers { get; set; }
+        public bool Password { get; set; }
+        public string RequiredVersion { get; set; }
+        public string RequiredBuildVersion { get; set; }
+        public bool BattleEye { get; set; }
+        public List<Player> Players { get; set; }
+        public string Mission { get; set; }
+        public long Ping { get; set; }
+        public short ServerState { get; set; }
+        public short Difficulty { get; set; }
+        public bool EqualModRequired { get; set; }
+        public bool Locked { get; set; }
+        public bool VerifySignatures { get; set; }
+        public string Language { get; set; }
+        public bool Dedicated { get; set; }
+        public string LongLat { get; set; }
+        public string Platform { get; set; }
+
         private const int HEADER_OFFSET = 5;
         private const int TABLE_OFFSET = 10;
         private const byte NULL_TERMINATOR = 0;
@@ -138,116 +161,6 @@ namespace BWServerLogger.Model {
                     }
                 }
             }
-        }
-
-        public string GameVersion {
-            get;
-            set;
-        }
-
-        public string HostName {
-            get;
-            set;
-        }
-
-        public string MapName {
-            get;
-            set;
-        }
-
-        public string Game {
-            get;
-            set;
-        }
-
-        public int NumPlayers {
-            get;
-            set;
-        }
-
-        public int MaxPlayers {
-            get;
-            set;
-        }
-
-        public bool Password {
-            get;
-            set;
-        }
-
-        public string RequiredVersion {
-            get;
-            set;
-        }
-
-        public string RequiredBuildVersion {
-            get;
-            set;
-        }
-
-        public bool BattleEye {
-            get;
-            set;
-        }
-
-        public List<Player> Players {
-            get;
-            set;
-        }
-
-        public string Mission {
-            get;
-            set;
-        }
-
-        public long Ping {
-            get;
-            set;
-        }
-
-        public Int16 ServerState {
-            get;
-            set;
-        }
-
-        public Int16 Difficulty {
-            get;
-            set;
-        }
-
-        public bool EqualModRequired {
-            get;
-            set;
-        }
-
-        public bool Locked {
-            get;
-            set;
-        }
-
-        public bool VerifySignatures {
-            get;
-            set;
-        }
-
-        public string Language {
-            get;
-            set;
-        }
-
-        public bool Dedicated {
-            get;
-            set;
-        }
-
-        public string LongLat {
-            get;
-            set;
-        }
-
-        public string Platform {
-            get;
-            set;
         }
 
         public override int GetHashCode() {

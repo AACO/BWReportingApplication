@@ -1,20 +1,12 @@
 ﻿using BWServerLogger.Util;
 
-using System;
 using System.Reflection;
 using System.Text;
 
 namespace BWServerLogger.Model {
     public abstract class BaseDatabase {
-        public int Id {
-            get;
-            set;
-        }
-
-        public bool Updated {
-            get;
-            set;
-        }
+        public int Id { get; set; }
+        public bool Updated { get; set; }
 
         public BaseDatabase() {
             Updated = false;
