@@ -1,20 +1,32 @@
 ﻿using MySql.Data.MySqlClient;
 
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 using BWServerLogger.Model;
 using BWServerLogger.Util;
 
 namespace BWServerLogger.DAO {
+    /// <summary>
+    /// Session database access object to deal with <see cref="Session"/> objects. Extends <see cref="BaseDAO"/>.
+    /// </summary>
+    /// <seealso cref="BaseDAO"/>
     public class SessionDAO : BaseDAO {
         private MySqlCommand _addSession;
         private MySqlCommand _updateSession;
 
+        /// <summary>
+        /// Constructor, sets up prepared statements
+        /// </summary>
+        /// <param name="connection">Open <see cref="MySqlConnection"/>, used to create prepared statements</param>
+        /// <seealso cref="BaseDAO(MySqlConnection)"/>
         public SessionDAO(MySqlConnection connection) : base(connection) {
         }
 
+        /// <summary>
+        /// Disposal method, should free all managed objects
+        /// </summary>
+        /// <param name="disposing">should the method dispose managed objects</param>
         protected override void Dispose(bool disposing) {
             base.Dispose(disposing);
             if (disposing) {
@@ -27,23 +39,13 @@ namespace BWServerLogger.DAO {
             }
         }
 
+        /// <summary>
+        /// Inserts a <see cref="Session"/> object into the database
+        /// </summary>
+        /// <param name="session"><see cref="Session"/> to create in the database</param>
+        /// <returns>The <see cref="Session"/> with updated values from the database</returns>
         public Session CreateSession(Session session) {
             session.Date = DateTime.Now;
-            StringBuilder insert = new StringBuilder();
-            insert.Append("insert into session (date, max_players, version, host_name, min_ping, max_ping) values");
-            insert.Append("(\"");
-            insert.Append(session.Date.ToString(DatabaseUtil.DATE_TIME_FORMAT));
-            insert.Append("\", ");
-            insert.Append(session.MaxPlayers);
-            insert.Append(", \"");
-            insert.Append(session.Version);
-            insert.Append("\", \"");
-            insert.Append(session.HostName);
-            insert.Append("\", ");
-            insert.Append(session.MinPing);
-            insert.Append(", ");
-            insert.Append(session.MaxPing);
-            insert.Append(")");
 
             _addSession.Parameters[DatabaseUtil.DATE_KEY].Value = session.Date;
             _addSession.Parameters[DatabaseUtil.MAX_PLAYERS_KEY].Value = session.MaxPlayers;
@@ -54,18 +56,28 @@ namespace BWServerLogger.DAO {
             _addSession.ExecuteNonQuery();
 
             session.Id = GetLastInsertedId();
+            _logger.DebugFormat("Created session in the database with id: {0}", session.Id);
 
             return session;
         }
 
+        /// <summary>
+        /// Updates the <see cref="Session"/> in the database
+        /// </summary>
+        /// <param name="session">The <see cref="Session"/> to update</param>
         public void UpdateSession(Session session) {
             _updateSession.Parameters[DatabaseUtil.MAX_PLAYERS_KEY].Value = session.MaxPlayers;
             _updateSession.Parameters[DatabaseUtil.MAX_PING_KEY].Value = session.MaxPing;
             _updateSession.Parameters[DatabaseUtil.MIN_PING_KEY].Value = session.MinPing;
             _updateSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
             _updateSession.ExecuteNonQuery();
+            _logger.DebugFormat("Updated session in the database with id: {0}", session.Id);
         }
 
+        /// <summary>
+        /// Method to setup prepared statements
+        /// </summary>
+        /// <param name="connection">Open <see cref="MySqlConnection"/> used to prepare statements</param>
         protected override void SetupPreparedStatements(MySqlConnection connection) {
             StringBuilder addSessionInsert = new StringBuilder();
             addSessionInsert.Append("insert into session (date, max_players, version, host_name, min_ping, max_ping) values");

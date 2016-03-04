@@ -14,6 +14,9 @@ using BWServerLogger.Model;
 using BWServerLogger.Util;
 
 namespace BWServerLogger {
+    /// <summary>
+    /// Main window class
+    /// </summary>
     public partial class MainWindow : Form {
         private const string _TIME_VALIDATION = "^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]$";
         private static readonly ILog _logger = LogManager.GetLogger(typeof(MainWindow));
@@ -22,7 +25,9 @@ namespace BWServerLogger {
         private readonly ReportingJob _reportingJob = new ReportingJob();
         private Thread _reportingThread;
         
-
+        /// <summary>
+        /// Constructor for the main window of the application
+        /// </summary>
         public MainWindow() {
             _reportingThread = new Thread(_reportingJob.DoJob);
             StartScheduleThread(false);

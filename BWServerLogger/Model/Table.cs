@@ -4,17 +4,41 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace BWServerLogger.Model {
+    /// <summary>
+    /// Object to represent a MySQL table
+    /// </summary>
     public class Table {
+        /// <summary>
+        /// Table name
+        /// </summary>
         public string Name { get; private set; }
+
+        /// <summary>
+        /// Set of columns on the table
+        /// </summary>
         public ISet<Column> Columns { get; private set; }
+
+        /// <summary>
+        /// List of indices on the table
+        /// </summary>
         public IList<Index> Indices { get; private set; }
 
+        /// <summary>
+        /// Table constructor that takes everything that defines a table
+        /// </summary>
+        /// <param name="name">Table name</param>
+        /// <param name="cols">Columns on the table</param>
+        /// <param name="indices">Indices on the table</param>
         public Table(string name, ISet<Column> cols, IList<Index> indices) {
             Name = name;
             Columns = cols;
             Indices = indices;
         }
 
+        /// <summary>
+        /// Creates an SQL string to create a table based on the set properties.
+        /// </summary>
+        /// <returns></returns>
         public string CreateTableSQL() {
             StringBuilder createTableQuery = new StringBuilder();
 
@@ -53,7 +77,7 @@ namespace BWServerLogger.Model {
                 switch (index.Type) {
                     case IndexType.PRIMARY:
                         createTableQuery.Append("PRIMARY KEY (");
-                        _addColumns(ref createTableQuery, index.Columns);
+                        AddColumns(ref createTableQuery, index.Columns);
                         createTableQuery.Append(")");
                         break;
                     case IndexType.UNIQUE:
@@ -63,18 +87,18 @@ namespace BWServerLogger.Model {
                         createTableQuery.Append("KEY `");
                         createTableQuery.Append(index.Name);
                         createTableQuery.Append("` (");
-                        _addColumns(ref createTableQuery, index.Columns);
+                        AddColumns(ref createTableQuery, index.Columns);
                         createTableQuery.Append(")");
                         break;
                     case IndexType.FOREIGN:
                         createTableQuery.Append("CONSTRAINT `");
                         createTableQuery.Append(index.Name);
                         createTableQuery.Append("` FOREIGN KEY (");
-                        _addColumns(ref createTableQuery, index.Columns);
+                        AddColumns(ref createTableQuery, index.Columns);
                         createTableQuery.Append(") REFERENCES `");
                         createTableQuery.Append(index.ReferenceTable);
                         createTableQuery.Append("` (");
-                        _addColumns(ref createTableQuery, index.ReferenceColumns);
+                        AddColumns(ref createTableQuery, index.ReferenceColumns);
                         createTableQuery.Append(")");
                         break;
                 }
@@ -86,6 +110,10 @@ namespace BWServerLogger.Model {
             return createTableQuery.ToString();
         }
 
+        /// <summary>
+        /// Overrides the default hash code
+        /// </summary>
+        /// <returns>Unique int value for an object</returns>
         public override int GetHashCode() {
             int hashCode = 1;
 
@@ -96,6 +124,12 @@ namespace BWServerLogger.Model {
             return hashCode;
         }
 
+        /// <summary>
+        /// Overrides the default equals method.
+        /// Uses some nasty reflection so we only need one equals method for all database objects
+        /// </summary>
+        /// <param name="obj">Object to check for equality</param>
+        /// <returns>True if the objects are equal, false otherwise.</returns>
         public override bool Equals(object obj) {
             bool equals = false;
 
@@ -106,7 +140,7 @@ namespace BWServerLogger.Model {
             return equals;
         }
 
-        private void _addColumns(ref StringBuilder query, IList<string> columns) {
+        private void AddColumns(ref StringBuilder query, IList<string> columns) {
             bool first = true;
             foreach (string col in columns) {
                 if (first) {

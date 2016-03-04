@@ -7,15 +7,28 @@ using BWServerLogger.Model;
 using BWServerLogger.Util;
 
 namespace BWServerLogger.DAO {
+    /// <summary>
+    /// Schedule database access object to deal with <see cref="Schedule"/> objects. Extends <see cref="BaseDAO"/>.
+    /// </summary>
+    /// <seealso cref="BaseDAO"/>
     public class ScheduleDAO : BaseDAO {
         private MySqlCommand _addScheduleItem;
         private MySqlCommand _getScheduleItems;
         private MySqlCommand _removeScheduleItem;
         private MySqlCommand _updateScheduleItem;
 
+        /// <summary>
+        /// Constructor, sets up prepared statements
+        /// </summary>
+        /// <param name="connection">Open <see cref="MySqlConnection"/>, used to create prepared statements</param>
+        /// <seealso cref="BaseDAO(MySqlConnection)"/>
         public ScheduleDAO(MySqlConnection connection) : base(connection) {
         }
 
+        /// <summary>
+        /// Disposal method, should free all managed objects
+        /// </summary>
+        /// <param name="disposing">should the method dispose managed objects</param>
         protected override void Dispose(bool disposing) {
             base.Dispose(disposing);
             if (disposing) {
@@ -34,6 +47,10 @@ namespace BWServerLogger.DAO {
             }
         }
 
+        /// <summary>
+        /// Gets a set of <see cref="Schedule"/> objects from the database
+        /// </summary>
+        /// <returns>set of <see cref="Schedule"/> objects from the database</returns>
         public ISet<Schedule> GetScheduleItems() {
             ISet<Schedule> scheduleItems = new HashSet<Schedule>();
 
@@ -49,27 +66,44 @@ namespace BWServerLogger.DAO {
 
             getScheduleItemsResult.Close();
 
+            _logger.Debug("Schedule items retrieved from the database");
+
             return scheduleItems;
         }
 
+        /// <summary>
+        /// Saves/adds a <see cref="Schedule"/> item to the database
+        /// </summary>
+        /// <param name="scheduleItem">The <see cref="Schedule"/> object to save/add</param>
         public void SaveScheduleItem(Schedule scheduleItem) {
             if (scheduleItem.Id < 1) {
                 _addScheduleItem.Parameters[DatabaseUtil.DAY_OF_THE_WEEK_KEY].Value = scheduleItem.DayOfTheWeek + 1;
                 _addScheduleItem.Parameters[DatabaseUtil.TIME_OF_DAY_KEY].Value = scheduleItem.TimeOfDay.ToString();
                 _addScheduleItem.ExecuteNonQuery();
+                _logger.DebugFormat("Schedule item inserted into the database with day of the week: {0}, and time of day: {1}", scheduleItem.DayOfTheWeek, scheduleItem.TimeOfDay);
             } else {
                 _updateScheduleItem.Parameters[DatabaseUtil.DAY_OF_THE_WEEK_KEY].Value = scheduleItem.DayOfTheWeek + 1;
                 _updateScheduleItem.Parameters[DatabaseUtil.TIME_OF_DAY_KEY].Value = scheduleItem.TimeOfDay.ToString();
                 _updateScheduleItem.Parameters[DatabaseUtil.SCHEDULE_ID_KEY].Value = scheduleItem.Id;
                 _updateScheduleItem.ExecuteNonQuery();
+                _logger.DebugFormat("Schedule item updated in the database with id: {0}", scheduleItem.Id);
             }
         }
 
+        /// <summary>
+        /// Removes the given <see cref="Schedule"/> item
+        /// </summary>
+        /// <param name="scheduleItem">The <see cref="Schedule"/> object to remove</param>
         public void RemoveScheduleItem(Schedule scheduleItem) {
             _removeScheduleItem.Parameters[DatabaseUtil.SCHEDULE_ID_KEY].Value = scheduleItem.Id;
             _removeScheduleItem.ExecuteNonQuery();
+            _logger.DebugFormat("Schedule item removed from the database with id: {0}", scheduleItem.Id);
         }
 
+        /// <summary>
+        /// Method to setup prepared statements
+        /// </summary>
+        /// <param name="connection">Open <see cref="MySqlConnection"/> used to prepare statements</param>
         protected override void SetupPreparedStatements(MySqlConnection connection) {
             StringBuilder getScheduleItemsSelect = new StringBuilder();
             getScheduleItemsSelect.Append("select id, day_of_the_week-1, time_of_day ");
@@ -117,6 +151,5 @@ namespace BWServerLogger.DAO {
             _removeScheduleItem.Parameters.Add(new MySqlParameter(DatabaseUtil.SCHEDULE_ID_KEY, MySqlDbType.Int32));
             _removeScheduleItem.Prepare();
         }
-
     }
 }

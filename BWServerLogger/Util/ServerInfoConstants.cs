@@ -1,4 +1,7 @@
 ﻿namespace BWServerLogger.Util {
+    /// <summary>
+    /// Class to hold server info constants
+    /// </summary>
     class ServerInfoConstants {
         public const string BATTLE_EYE = "b";
         public const string REQUIRED_VERSION = "r";

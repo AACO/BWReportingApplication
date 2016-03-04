@@ -13,6 +13,9 @@ using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 
 namespace BWServerLogger.Util {
+    /// <summary>
+    /// Util to help with database interactions
+    /// </summary>
     class DatabaseUtil {
         private static readonly ILog _logger = LogManager.GetLogger(typeof(DatabaseUtil));
 
@@ -62,7 +65,23 @@ namespace BWServerLogger.Util {
         private const string INDEX_MATCHER_REGEX = @"((?:PRIMARY)|(?:UNIQUE))? ?KEY ?(?:`([A-Za-z0-9_]+)` )?\(((?:`(?:[A-Za-z0-9_]+)`,?)+)\)(?! REFERENCES)";
         private const string FK_MATCHER_REGEX = @"CONSTRAINT `([A-Za-z0-9_]+)` FOREIGN KEY \(((?:`(?:[A-Za-z_]+)`,?)+)\) REFERENCES `([A-Za-z0-9_]+)` \(((?:`(?:[A-Za-z_]+)`,?)+)\)";
 
+        /// <summary>
+        /// Opens a MySQL data connection.
+        /// Validates the schema integrity.
+        /// </summary>
+        /// <returns>An open MySQL data connection</returns>
         public static MySqlConnection OpenDataSource() {
+            return OpenDataSource(true);
+        }
+
+        /// <summary>
+        /// Opens a MySQL data connection.
+        /// </summary>
+        /// <param name="validate">If true, will validate the schema integrity</param>
+        /// <returns>An open MySQL data connection</returns>
+        public static MySqlConnection OpenDataSource(bool validate) {
+            _logger.InfoFormat("Trying to open a new datasource with validation set to {0}.", validate);
+
             // build connection string (using "AppSettings" instead of "ConnectionStrings" to allow easier password en/decryption)
             StringBuilder connectionString = new StringBuilder();
             connectionString.Append("server=");
@@ -85,17 +104,32 @@ namespace BWServerLogger.Util {
             connection.Open();
 
             // ensure DB is in order for the new connection. Adds runtime, but ensures integrity
-            _validateDatabase(connection);
+            if (validate) {
+                _logger.Info("Trying to validate the datasource schema.");
+                ValidateDatabase(connection);
+                _logger.Info("Datasource schema validated.");
+            }
 
             return connection;
         }
 
-        private static void _validateDatabase(MySqlConnection connection) {
+        /// <summary>
+        /// Validates the database schema for the given connection
+        /// </summary>
+        /// <param name="connection">connection to validate</param>
+        private static void ValidateDatabase(MySqlConnection connection) {
             foreach (Table table in _tables) {
+                _logger.DebugFormat("Trying to validate table: {0}", table.Name);
                 CheckTable(connection, table, 0);
             }
         }
 
+        /// <summary>
+        /// Validates a table
+        /// </summary>
+        /// <param name="connection">Connection to validate</param>
+        /// <param name="table">Table to validate</param>
+        /// <param name="retryAttempts">Number of retries to try and validate</param>
         private static void CheckTable(MySqlConnection connection, Table table, int retryAttempts) {
             if (retryAttempts > 2) { //ensure no insane infinite loop case
                 throw new NoRetriesLeftException("Ran out of retries validating stabase schema");
@@ -131,17 +165,23 @@ namespace BWServerLogger.Util {
                             CheckTable(connection, table, retryAttempts++);
                             return;
                         } else {
-                            _logger.ErrorFormat("Error validating database schema", mse);
+                            _logger.Error("Error validating database schema", mse);
                             throw; // we want blowups on invalid schema
                         }
                     }
                 } else {
-                    _logger.ErrorFormat("Error validating database schema", e);
+                    _logger.Error("Error validating database schema", e);
                     throw; // we want blowups on invalid schema
                 }
             }
         }
 
+        /// <summary>
+        /// Validates columns from a table
+        /// </summary>
+        /// <param name="sqlToScrape">SQL create table string to check for column data</param>
+        /// <param name="columns">Projected schema columns</param>
+        /// <param name="tableName">Name of table to check</param>
         private static void CheckColumns(string sqlToScrape, ISet<Column> columns, string tableName) {
             // create regex to scrape SQL result
             Regex columnRegex = new Regex(COLUMN_MATCHER_REGEX);
@@ -165,6 +205,12 @@ namespace BWServerLogger.Util {
             }
         }
 
+        /// <summary>
+        /// Validates indices from a table
+        /// </summary>
+        /// <param name="sqlToScrape">SQL create table string to check for column data</param>
+        /// <param name="indices">Projected schema indices</param>
+        /// <param name="tableName">Name of table to check</param>
         private static void CheckIndices(string sqlToScrape, IList<Index> indices, string tableName) {
             // create regex to scrape SQL result
             Regex indexRegex = new Regex(INDEX_MATCHER_REGEX);
@@ -197,6 +243,10 @@ namespace BWServerLogger.Util {
             }
         }
 
+        /// <summary>
+        /// Decrypts the MySQL connection password
+        /// </summary>
+        /// <returns>Decrypted MySQL password</returns>
         public static string GetMySQLPassword() {
             // Declare the string used to hold the decrypted text. 
             string plainText = "";
@@ -231,6 +281,10 @@ namespace BWServerLogger.Util {
             return plainText;
         }
 
+        /// <summary>
+        /// Encrypts and stores the MySQL connection password
+        /// </summary>
+        /// <param name="password">Password to encrypt and store</param>
         public static void SetMySQLPassword(string password) {
             try {
                 byte[] encrypted;
@@ -264,7 +318,7 @@ namespace BWServerLogger.Util {
         }
 
         // map columns
-        private static ISet<Column> _mapColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _mapColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
             { new Column("friendly_name", "varchar(150)", false, "", false) },
             { new Column("name", "varchar(150)", false, "", false) },
@@ -272,27 +326,27 @@ namespace BWServerLogger.Util {
         };
 
         // map indices
-        private static IList<Index> _mapIndices = new List<Index> {
+        private readonly static IList<Index> _mapIndices = new List<Index> {
             { new Index("id") },
             { new Index(IndexType.UNIQUE, "name", "name") },
             { new Index(IndexType.UNIQUE, "friendly_name", "friendly_name") }
         };
 
         // player columns
-        private static ISet<Column> _playerColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _playerColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
             { new Column("name", "varchar(255)", false, "", false) },
             { new Column("has_clan_tag", "bit(1)", false, "b'0'", false) }
         };
 
         // player indices
-        private static IList<Index> _playerIndices = new List<Index> {
+        private readonly static IList<Index> _playerIndices = new List<Index> {
             { new Index("id") },
             { new Index(IndexType.UNIQUE, "name", "name") }
         };
 
         // session columns
-        private static ISet<Column> _sessionColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _sessionColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
             { new Column("date", "datetime", false, "", false) },
             { new Column("host_name", "varchar(255)", false, "", false) },
@@ -303,38 +357,38 @@ namespace BWServerLogger.Util {
         };
 
         // session indices
-        private static IList<Index> _sessionIndices = new List<Index> {
+        private readonly static IList<Index> _sessionIndices = new List<Index> {
             { new Index("id") },
             { new Index(IndexType.UNIQUE, "date", "date") }
         };
 
         // schedule columns
-        private static ISet<Column> _scheduleColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _scheduleColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
             { new Column("day_of_the_week", "enum('SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY')", false, "", false) },
             { new Column("time_of_day", "time", false, "", false) }
         };
 
         // schedule indices
-        private static IList<Index> _scheduleIndices = new List<Index> {
+        private readonly static IList<Index> _scheduleIndices = new List<Index> {
             { new Index("id") },
             { new Index(IndexType.UNIQUE, "unique_schedule_constraint", "day_of_the_week,time_of_day") }
         };
 
         // framework columns
-        private static ISet<Column> _frameworkColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _frameworkColumns = new HashSet<Column> {
             { new Column("id", "int(10)", false, "", true) },
             { new Column("version", "varchar(10)", false, "", false) },
             { new Column("url", "varchar(255)", false, "", false) }
         };
 
         // framework indices
-        private static IList<Index> _frameworkIndices = new List<Index> {
+        private readonly static IList<Index> _frameworkIndices = new List<Index> {
             { new Index("id") }
         };
 
         // mission columns
-        private static ISet<Column> _missionColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _missionColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
             { new Column("name", "varchar(255)", false, "", false) },
             { new Column("map_id", "int(10) unsigned", false, "", false) },
@@ -349,7 +403,7 @@ namespace BWServerLogger.Util {
         };
 
         // mission indices
-        private static IList<Index> _missionIndices = new List<Index> {
+        private readonly static IList<Index> _missionIndices = new List<Index> {
             { new Index("id") },
             { new Index(IndexType.UNIQUE, "name", "name") },
             { new Index(IndexType.NONUNIQUE, "map", "map_id") },
@@ -359,7 +413,7 @@ namespace BWServerLogger.Util {
         };
 
         // player to session columns
-        private static ISet<Column> _ptsColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _ptsColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
             { new Column("player_id", "int(10) unsigned", false, "", false) },
             { new Column("session_id", "int(10) unsigned", false, "", false) },
@@ -368,7 +422,7 @@ namespace BWServerLogger.Util {
         };
 
         // player to session indices
-        private static IList<Index> _ptsIndices = new List<Index> {
+        private readonly static IList<Index> _ptsIndices = new List<Index> {
             { new Index("id") },
             { new Index(IndexType.UNIQUE, "player_id_session_id", "player_id,session_id") },
             { new Index(IndexType.NONUNIQUE, "player_id_to_player", "player_id") },
@@ -378,7 +432,7 @@ namespace BWServerLogger.Util {
         };
 
         // mission to session columns
-        private static ISet<Column> _mtsColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _mtsColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
             { new Column("mission_id", "int(10) unsigned", false, "", false) },
             { new Column("session_id", "int(10) unsigned", false, "", false) },
@@ -387,7 +441,7 @@ namespace BWServerLogger.Util {
         };
 
         // mission to session indices
-        private static IList<Index> _mtsIndices = new List<Index> {
+        private readonly static IList<Index> _mtsIndices = new List<Index> {
             { new Index("id") },
             { new Index(IndexType.UNIQUE, "mission_id_session_id", "mission_id,session_id") },
             { new Index(IndexType.NONUNIQUE, "mts_key_session_id_to_session", "session_id") },
@@ -397,7 +451,7 @@ namespace BWServerLogger.Util {
         };
 
         // mission to session columns
-        private static ISet<Column> _ptstmtsColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _ptstmtsColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
             { new Column("player_to_session_id", "int(10) unsigned", false, "", false) },
             { new Column("mission_to_session_id", "int(10) unsigned", false, "", false) },
@@ -406,7 +460,7 @@ namespace BWServerLogger.Util {
         };
 
         // mission to session indices
-        private static IList<Index> _ptstmtsIndices = new List<Index> {
+        private readonly static IList<Index> _ptstmtsIndices = new List<Index> {
             { new Index("id") },
             { new Index(IndexType.UNIQUE, "mission_to_session_id_2", "mission_to_session_id,player_to_session_id") },
             { new Index(IndexType.NONUNIQUE, "player_to_session_id", "player_to_session_id") },
@@ -416,7 +470,7 @@ namespace BWServerLogger.Util {
         };
 
         // ORDER MATTERS!
-        private static IList<Table> _tables = new List<Table> {
+        private readonly static IList<Table> _tables = new List<Table> {
             // adding map table
             { new Table(MAP, _mapColumns, _mapIndices) },
 

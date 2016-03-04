@@ -7,6 +7,10 @@ using BWServerLogger.Model;
 using BWServerLogger.Util;
 
 namespace BWServerLogger.DAO {
+    /// <summary>
+    /// Player session to mission session database access object to deal with <see cref="PlayerSessionToMissionSession"/> objects. Extends <see cref="BaseDAO"/>.
+    /// </summary>
+    /// <seealso cref="BaseDAO"/>
     public class PlayerSessionToMissionSessionDAO : BaseDAO {
         private int _cachedMissionSessionId;
         private IDictionary<int, PlayerSessionToMissionSession> _cachedPlayerSessionsToPSTMS;
@@ -14,9 +18,18 @@ namespace BWServerLogger.DAO {
         private MySqlCommand _addPSTMS;
         private MySqlCommand _updatePSTMS;
 
+        /// <summary>
+        /// Constructor, sets up prepared statements
+        /// </summary>
+        /// <param name="connection">Open<see cref="MySqlConnection"/>, used to create prepared statements</param>
+        /// <seealso cref="BaseDAO(MySqlConnection)"/>
         public PlayerSessionToMissionSessionDAO(MySqlConnection connection) : base(connection) {
         }
 
+        /// <summary>
+        /// Disposal method, should free all managed objects
+        /// </summary>
+        /// <param name="disposing">should the method dispose managed objects</param>
         protected override void Dispose(bool disposing) {
             base.Dispose(disposing);
             if (disposing) {
@@ -32,6 +45,13 @@ namespace BWServerLogger.DAO {
             }
         }
 
+        /// <summary>
+        /// Gets or creates a set of <see cref="PlayerSessionToMissionSession"/> objects for the given <see cref="MissionSession"/> and set of <see cref="PlayerSession"/> objects
+        /// Using caching to reduce MySQL calls and speed up runtime
+        /// </summary>
+        /// <param name="missionSession"><see cref="MissionSession"/> object used for lookup/creation</param>
+        /// <param name="playerSessions">Set of <see cref="PlayerSession"/> objects used for lookup/creation</param>
+        /// <returns>Set of <see cref="PlayerSession"/>s from the database</returns>
         public ISet<PlayerSessionToMissionSession> GetOrCreatePSTMS(MissionSession missionSession, ISet<PlayerSession> playerSessions) {
             ISet<PlayerSessionToMissionSession> pstmses = new HashSet<PlayerSessionToMissionSession>();
 
@@ -48,6 +68,7 @@ namespace BWServerLogger.DAO {
 
                 if (_cachedPlayerSessionsToPSTMS.ContainsKey(playerSession.Id)) {
                     _cachedPlayerSessionsToPSTMS.TryGetValue(playerSession.Id, out pstms);
+                    _logger.DebugFormat("PSTMS retrieved from cache with id: {0}", pstms.Id);
                 } else {
                     //get
                     _getPSTMS.Parameters[DatabaseUtil.PLAYER_TO_SESSION_ID_KEY].Value = playerSession.Id;
@@ -60,6 +81,7 @@ namespace BWServerLogger.DAO {
                         pstms.Id = getPTSTMTSResult.GetInt32(0);
                         pstms.Length = getPTSTMTSResult.GetInt32(1);
                         pstms.Played = getPTSTMTSResult.GetBoolean(2);
+                        _logger.DebugFormat("PSTMS retrieved from database with id: {0}", pstms.Id);
 
                         getPTSTMTSResult.Close();
                     } else {
@@ -69,6 +91,7 @@ namespace BWServerLogger.DAO {
                         _addPSTMS.Parameters[DatabaseUtil.PLAYER_TO_SESSION_ID_KEY].Value = playerSession.Id;
                         _addPSTMS.Parameters[DatabaseUtil.MISSION_TO_SESSION_ID_KEY].Value = missionSession.Id;
                         _addPSTMS.ExecuteNonQuery();
+                        _logger.DebugFormat("PSTMS inserted into the database with id: {0}", pstms.Id);
 
                         pstms.Id = GetLastInsertedId();
                     }
@@ -79,21 +102,35 @@ namespace BWServerLogger.DAO {
             return pstmses;
         }
 
+        /// <summary>
+        /// Function to update a set of <see cref="PlayerSessionToMissionSession"/>s on the database level, just calls <see cref="UpdatePSTMS(PlayerSessionToMissionSession)"/>
+        /// </summary>
+        /// <param name="pstmses">Set of <see cref="PlayerSessionToMissionSession"/>s to update</param>
         public void UpdatePSTMS(ISet<PlayerSessionToMissionSession> pstmses) {
             foreach (PlayerSessionToMissionSession pstms in pstmses) {
                 UpdatePSTMS(pstms);
             }
         }
 
+        /// <summary>
+        /// Function to update a <see cref="PlayerSessionToMissionSession"/> on the database level
+        /// </summary>
+        /// <param name="pstms"><see cref="PlayerSessionToMissionSession"/> to update</param>
         public void UpdatePSTMS(PlayerSessionToMissionSession pstms) {
             if (pstms.Updated) {
                 _updatePSTMS.Parameters[DatabaseUtil.PLAYED_KEY].Value = pstms.Played;
                 _updatePSTMS.Parameters[DatabaseUtil.LENGTH_KEY].Value = pstms.Length;
                 _updatePSTMS.Parameters[DatabaseUtil.PLAYER_TO_SESSION_TO_MISSION_TO_SESSION_ID_KEY].Value = pstms.Id;
                 _updatePSTMS.ExecuteNonQuery();
+
+                _logger.DebugFormat("PSTMS updated in the database with id: {0}", pstms.Id);
             }
         }
 
+        /// <summary>
+        /// Method to setup prepared statements
+        /// </summary>
+        /// <param name="connection">Open <see cref="MySqlConnection"/> used to prepare statements</param>
         protected override void SetupPreparedStatements(MySqlConnection connection) {
             StringBuilder getPSTMSSelect = new StringBuilder();
             getPSTMSSelect.Append("select id, length, played ");
