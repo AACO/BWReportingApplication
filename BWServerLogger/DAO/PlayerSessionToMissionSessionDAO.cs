@@ -91,9 +91,9 @@ namespace BWServerLogger.DAO {
                         _addPSTMS.Parameters[DatabaseUtil.PLAYER_TO_SESSION_ID_KEY].Value = playerSession.Id;
                         _addPSTMS.Parameters[DatabaseUtil.MISSION_TO_SESSION_ID_KEY].Value = missionSession.Id;
                         _addPSTMS.ExecuteNonQuery();
-                        _logger.DebugFormat("PSTMS inserted into the database with id: {0}", pstms.Id);
-
+                        
                         pstms.Id = GetLastInsertedId();
+                        _logger.DebugFormat("PSTMS inserted into the database with id: {0}", pstms.Id);
                     }
                 }
                 pstmses.Add(pstms);

@@ -13,7 +13,7 @@ using BWServerLogger.Util;
 
 namespace BWServerLogger.Job {
     /// <summary>
-    /// Job to schedule and kick off the remoting job
+    /// Job to schedule and kick off reporting
     /// </summary>
     class ReportingJob {
         private static readonly ILog _logger = LogManager.GetLogger(typeof(ReportingJob));
@@ -99,7 +99,7 @@ namespace BWServerLogger.Job {
                     }
 
                     // if min DoW is not set, or if the scheduled DoW is less than the min, check MS
-                    if (minDayOfWeek < 0 || (minDayOfWeek > dayOfWeek && minMS > ms)) {
+                    if (minDayOfWeek < 0 || minDayOfWeek > dayOfWeek || (minDayOfWeek == dayOfWeek && minMS > ms)) {
                         minDayOfWeek = dayOfWeek;
                         minMS = ms;
                     }
