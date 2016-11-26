@@ -14,15 +14,9 @@ namespace BWServerLogger.Model {
         public int Id { get; set; }
 
         /// <summary>
-        /// Boolean to track if the object has been updated (true) or not (false)
-        /// </summary>
-        public bool Updated { get; set; }
-
-        /// <summary>
-        /// Default constructor, sets <see cref="Updated"/> to false
+        /// Default constructor
         /// </summary>
         public BaseDatabase() {
-            Updated = false;
         }
 
         /// <summary>
@@ -33,7 +27,6 @@ namespace BWServerLogger.Model {
             int hashcode = 17;
 
             hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Id);
-            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Updated);
 
             return hashcode;
         }

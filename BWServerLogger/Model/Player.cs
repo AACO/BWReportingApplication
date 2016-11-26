@@ -25,6 +25,11 @@ namespace BWServerLogger.Model {
         }
 
         /// <summary>
+        /// Boolean to track if the object has been updated (true) or not (false)
+        /// </summary>
+        public bool Updated { get; set; }
+
+        /// <summary>
         /// True if the player has a clan tag, false if the player does not.
         /// </summary>
         public bool HasClanTag { get; private set; }
@@ -35,6 +40,7 @@ namespace BWServerLogger.Model {
         /// <seealso cref="BaseDatabase()"/>
         public Player() : base() {
             HasClanTag = false;
+            Updated = false;
         }
 
         /// <summary>

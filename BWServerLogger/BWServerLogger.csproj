@@ -132,7 +132,6 @@
   <ItemGroup>
     <Compile Include="DAO\BaseDAO.cs" />
     <Compile Include="DAO\MissionDAO.cs" />
-    <Compile Include="DAO\PlayerSessionToMissionSessionDAO.cs" />
     <Compile Include="DAO\PlayerDAO.cs" />
     <Compile Include="DAO\ScheduleDAO.cs" />
     <Compile Include="DAO\SessionDAO.cs" />
@@ -153,7 +152,7 @@
     <Compile Include="LoggerUI.cs" />
     <Compile Include="Model\BaseRelational.cs" />
     <Compile Include="Model\Index.cs" />
-    <Compile Include="Model\PlayerSessionToMissionSession.cs" />
+    <Compile Include="Model\PlayerMissionSession.cs" />
     <Compile Include="Model\Table.cs" />
     <Compile Include="Model\IndexType.cs" />
     <Compile Include="Model\Column.cs" />
@@ -163,7 +162,6 @@
     <Compile Include="Model\MissionSession.cs" />
     <Compile Include="Model\Schedule.cs" />
     <Compile Include="Model\Session.cs" />
-    <Compile Include="Model\PlayerSession.cs" />
     <Compile Include="Model\Player.cs" />
     <Compile Include="Model\ServerInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

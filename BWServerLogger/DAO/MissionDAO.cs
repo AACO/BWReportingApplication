@@ -127,9 +127,8 @@ namespace BWServerLogger.DAO {
                     missionSession.Mission.Id = GetLastInsertedId();
 
                     CreateMissionSession(missionSession);
-
-                    _cachedMissionSession = missionSession;
                 }
+                _cachedMissionSession = missionSession;
             }
             
             return missionSession;
@@ -140,14 +139,12 @@ namespace BWServerLogger.DAO {
         /// </summary>
         /// <param name="missionSession"><see cref="MissionSession"/> object to update</param>
         public void UpdateMissionSession(MissionSession missionSession) {
-            if (missionSession.Updated) {
                 _updateMissionSession.Parameters[DatabaseUtil.MISSION_TO_SESSION_ID_KEY].Value = missionSession.Id;
                 _updateMissionSession.Parameters[DatabaseUtil.LENGTH_KEY].Value = missionSession.Length;
                 _updateMissionSession.Parameters[DatabaseUtil.PLAYED_KEY].Value = missionSession.Played;
                 _updateMissionSession.ExecuteNonQuery();
 
                 _logger.DebugFormat("Mission session updated on the database with ID: {0}", missionSession.Id);
-            }
         }
 
         /// <summary>

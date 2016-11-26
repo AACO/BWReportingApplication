@@ -33,8 +33,6 @@ namespace BWServerLogger.Model {
             int hashcode = 17;
 
             hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, base.GetHashCode());
-            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Length);
-            hashcode = HashUtil.SimpleObjectHashBuilderHelper(hashcode, Played);
 
             return hashcode;
         }

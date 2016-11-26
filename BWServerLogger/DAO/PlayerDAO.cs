@@ -8,15 +8,15 @@ using BWServerLogger.Util;
 
 namespace BWServerLogger.DAO {
     /// <summary>
-    /// Player database access object to deal with <see cref="Player"/> and <see cref="PlayerSession"/> objects. Extends <see cref="BaseDAO"/>.
+    /// Player database access object to deal with <see cref="Player"/> and <see cref="PlayerMissionSession"/> objects. Extends <see cref="BaseDAO"/>.
     /// </summary>
     /// <seealso cref="BaseDAO"/>
     public class PlayerDAO : BaseDAO {
-        private Dictionary<string, PlayerSession> _cachedPlayerSessions;
-        private MySqlCommand _getPlayerSession;
-        private MySqlCommand _addPlayerSession;
+        private Dictionary<string, PlayerMissionSession> _cachedPlayerMissionSessions;
+        private MySqlCommand _getPlayerMissionSession;
+        private MySqlCommand _addPlayerMissionSession;
         private MySqlCommand _addPlayer;
-        private MySqlCommand _updatePlayerSession;
+        private MySqlCommand _updatePlayerMissionSession;
         private MySqlCommand _updatePlayer;
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace BWServerLogger.DAO {
         /// <param name="connection">Open<see cref="MySqlConnection"/>, used to create prepared statements</param>
         /// <seealso cref="BaseDAO(MySqlConnection)"/>
         public PlayerDAO(MySqlConnection connection) : base(connection) {
-            _cachedPlayerSessions = new Dictionary<string, PlayerSession>();
+            _cachedPlayerMissionSessions = new Dictionary<string, PlayerMissionSession>();
         }
 
         /// <summary>
@@ -35,17 +35,17 @@ namespace BWServerLogger.DAO {
         protected override void Dispose(bool disposing) {
             base.Dispose(disposing);
             if (disposing) {
-                if (_getPlayerSession != null) {
-                    _getPlayerSession.Dispose();
+                if (_getPlayerMissionSession != null) {
+                    _getPlayerMissionSession.Dispose();
                 }
-                if (_addPlayerSession != null) {
-                    _addPlayerSession.Dispose();
+                if (_addPlayerMissionSession != null) {
+                    _addPlayerMissionSession.Dispose();
                 }
                 if (_addPlayer != null) {
                     _addPlayer.Dispose();
                 }
-                if (_updatePlayerSession != null) {
-                    _updatePlayerSession.Dispose();
+                if (_updatePlayerMissionSession != null) {
+                    _updatePlayerMissionSession.Dispose();
                 }
                 if (_updatePlayer != null) {
                     _updatePlayer.Dispose();
@@ -54,45 +54,46 @@ namespace BWServerLogger.DAO {
         }
 
         /// <summary>
-        /// Gets or creates a set of <see cref="PlayerSession"/>s from the given list of <see cref="Player"/>s and the current <see cref="Session"/>.
+        /// Gets or creates a set of <see cref="PlayerMissionSession"/>s from the given list of <see cref="Player"/>s and the current <see cref="Session"/>.
         /// Using caching to reduce MySQL calls and speed up runtime
         /// </summary>
         /// <param name="players">List of <see cref="Player"/>s to get/create</param>
-        /// <param name="session">Current <see cref="Session"/></param>
-        /// <returns>A set of <see cref="PlayerSession"/> objects, from the database.</returns>
-        public ISet<PlayerSession> GetOrCreatePlayerSessions(IList<Player> players, Session session) {
-            ISet<PlayerSession> playerSessions = new HashSet<PlayerSession>();
+        /// <param name="missionSession">Current <see cref="MissionSession"/></param>
+        /// <returns>A set of <see cref="PlayerMissionSession"/> objects, from the database.</returns>
+        public ISet<PlayerMissionSession> GetOrCreatePlayerMissionSessions(IList<Player> players, MissionSession missionSession) {
+            ISet<PlayerMissionSession> playerMissionSessions = new HashSet<PlayerMissionSession>();
 
             foreach (Player player in players) {
-                PlayerSession playerSession = new PlayerSession();
-                playerSession.Player = player;
-                playerSession.Session = session;
+                PlayerMissionSession playerToMissionSession = new PlayerMissionSession();
+                playerToMissionSession.Player = player;
+                playerToMissionSession.MissionSession = missionSession;
 
-                if (_cachedPlayerSessions.ContainsKey(player.Name)) {
-                    _cachedPlayerSessions.TryGetValue(player.Name, out playerSession);
-                    _logger.DebugFormat("Retrieved player session from the cache with ID: {0}", playerSession.Id);
+                string key = player.Name + missionSession.Id;
+                if (_cachedPlayerMissionSessions.ContainsKey(key)) {
+                    _cachedPlayerMissionSessions.TryGetValue(key, out playerToMissionSession);
+                    _logger.DebugFormat("Retrieved player mission session from the cache with ID: {0}", playerToMissionSession.Id);
                 } else {
-                    _getPlayerSession.Parameters[DatabaseUtil.NAME_KEY].Value = player.Name;
-                    _getPlayerSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = session.Id;
+                    _getPlayerMissionSession.Parameters[DatabaseUtil.NAME_KEY].Value = player.Name;
+                    _getPlayerMissionSession.Parameters[DatabaseUtil.MISSION_TO_SESSION_ID_KEY].Value = missionSession.Id;
 
-                    MySqlDataReader getPlayerResult = _getPlayerSession.ExecuteReader();
+                    MySqlDataReader getPlayerResult = _getPlayerMissionSession.ExecuteReader();
 
                     if (getPlayerResult.HasRows) {
                         getPlayerResult.Read();
-                        playerSession.Player.Id = getPlayerResult.GetInt32(0);
+                        playerToMissionSession.Player.Id = getPlayerResult.GetInt32(0);
 
-                        if (getPlayerResult.GetBoolean(1) != playerSession.Player.HasClanTag) {
-                            playerSession.Player.Updated = true;
+                        if (getPlayerResult.GetBoolean(1) != playerToMissionSession.Player.HasClanTag) {
+                            playerToMissionSession.Player.Updated = true;
                         }
 
                         if (getPlayerResult.IsDBNull(2)) {
                             getPlayerResult.Close();
-                            CreatePlayerSession(playerSession);
+                            CreatePlayerMissionSession(playerToMissionSession);
                         } else {
-                            playerSession.Id = getPlayerResult.GetInt32(2);
-                            playerSession.Length = getPlayerResult.GetInt32(3);
-                            playerSession.Played = getPlayerResult.GetBoolean(4);
-                            _logger.DebugFormat("Retrieved player session from the database with ID: {0}", playerSession.Id);
+                            playerToMissionSession.Id = getPlayerResult.GetInt32(2);
+                            playerToMissionSession.Length = getPlayerResult.GetInt32(3);
+                            playerToMissionSession.Played = getPlayerResult.GetBoolean(4);
+                            _logger.DebugFormat("Retrieved player mission session from the database with ID: {0}", playerToMissionSession.Id);
 
                             getPlayerResult.Close();
                         }
@@ -102,46 +103,44 @@ namespace BWServerLogger.DAO {
                         _addPlayer.Parameters[DatabaseUtil.HAS_CLAN_TAG_KEY].Value = player.HasClanTag;
                         _addPlayer.ExecuteNonQuery();
 
-                        playerSession.Player.Id = GetLastInsertedId();
+                        playerToMissionSession.Player.Id = GetLastInsertedId();
 
-                        CreatePlayerSession(playerSession);                   
+                        CreatePlayerMissionSession(playerToMissionSession);                   
                     }
-                    _cachedPlayerSessions.Add(player.Name, playerSession);
+                    _cachedPlayerMissionSessions.Add(key, playerToMissionSession);
                 }
-                playerSessions.Add(playerSession);
+                playerMissionSessions.Add(playerToMissionSession);
             }
 
-            return playerSessions;
+            return playerMissionSessions;
         }
 
         /// <summary>
-        /// Function to update a set of <see cref="PlayerSession"/>s on the database level, just calls <see cref="UpdatePlayerSession(PlayerSession)"/>
+        /// Function to update a set of <see cref="PlayerMissionSession"/>s on the database level, just calls <see cref="UpdatePlayerMissionSession(PlayerMissionSession)"/>
         /// </summary>
-        /// <param name="playerSessions">Set of <see cref="PlayerSession"/>s to update</param>
-        public void UpdatePlayerSessions(ISet<PlayerSession> playerSessions) {
-            foreach (PlayerSession playerSession in playerSessions) {
-                UpdatePlayerSession(playerSession);
+        /// <param name="playerToMissionSessions">Set of <see cref="PlayerMissionSession"/>s to update</param>
+        public void UpdatePlayerMissionSessions(ISet<PlayerMissionSession> playerToMissionSessions) {
+            foreach (PlayerMissionSession playerToMissionSession in playerToMissionSessions) {
+                UpdatePlayerMissionSession(playerToMissionSession);
             }
         }
 
         /// <summary>
-        /// Function to update a <see cref="PlayerSession"/> on the database level
+        /// Function to update a <see cref="PlayerMissionSession"/> on the database level
         /// </summary>
-        /// <param name="playerSession"><see cref="PlayerSession"/> to update</param>
-        public void UpdatePlayerSession(PlayerSession playerSession) {
-            if (playerSession.Updated) {
-                _updatePlayerSession.Parameters[DatabaseUtil.PLAYED_KEY].Value = playerSession.Played;
-                _updatePlayerSession.Parameters[DatabaseUtil.LENGTH_KEY].Value = playerSession.Length;
-                _updatePlayerSession.Parameters[DatabaseUtil.PLAYER_TO_SESSION_ID_KEY].Value = playerSession.Id;
-                _updatePlayerSession.ExecuteNonQuery();
-                _logger.DebugFormat("Player session updated with ID: {0}", playerSession.Id);
-            }
+        /// <param name="playerToMissionSession"><see cref="PlayerMissionSession"/> to update</param>
+        public void UpdatePlayerMissionSession(PlayerMissionSession playerToMissionSession) {
+            _updatePlayerMissionSession.Parameters[DatabaseUtil.PLAYED_KEY].Value = playerToMissionSession.Played;
+            _updatePlayerMissionSession.Parameters[DatabaseUtil.LENGTH_KEY].Value = playerToMissionSession.Length;
+            _updatePlayerMissionSession.Parameters[DatabaseUtil.PLAYER_TO_MISSION_TO_SESSION_ID_KEY].Value = playerToMissionSession.Id;
+            _updatePlayerMissionSession.ExecuteNonQuery();
+            _logger.DebugFormat("Player mission session updated with ID: {0}", playerToMissionSession.Id);
 
-            if (playerSession.Player.Updated) {
-                _updatePlayer.Parameters[DatabaseUtil.HAS_CLAN_TAG_KEY].Value = playerSession.Player.HasClanTag;
-                _updatePlayer.Parameters[DatabaseUtil.PLAYER_ID_KEY].Value = playerSession.Player.Id;
+            if (playerToMissionSession.Player.Updated) {
+                _updatePlayer.Parameters[DatabaseUtil.HAS_CLAN_TAG_KEY].Value = playerToMissionSession.Player.HasClanTag;
+                _updatePlayer.Parameters[DatabaseUtil.PLAYER_ID_KEY].Value = playerToMissionSession.Player.Id;
                 _updatePlayer.ExecuteNonQuery();
-                _logger.DebugFormat("Player updated with ID: {0}", playerSession.Player.Id);
+                _logger.DebugFormat("Player updated with ID: {0}", playerToMissionSession.Player.Id);
             }
         }
 
@@ -150,20 +149,20 @@ namespace BWServerLogger.DAO {
         /// </summary>
         /// <param name="connection">Open <see cref="MySqlConnection"/> used to prepare statements</param>
         protected override void SetupPreparedStatements(MySqlConnection connection) {
-            StringBuilder getPlayerSessionSelect = new StringBuilder();
-            getPlayerSessionSelect.Append("select p.id, p.has_clan_tag, ");
-            getPlayerSessionSelect.Append("pts.id, pts.length, pts.played ");
-            getPlayerSessionSelect.Append("from player p ");
-            getPlayerSessionSelect.Append("left join player_to_session pts on pts.player_id = p.id and pts.session_id = ");
-            getPlayerSessionSelect.Append(DatabaseUtil.SESSION_ID_KEY);
-            getPlayerSessionSelect.Append(" ");
-            getPlayerSessionSelect.Append("where p.name = ");
-            getPlayerSessionSelect.Append(DatabaseUtil.NAME_KEY);
+            StringBuilder getPlayerMissionSessionSelect = new StringBuilder();
+            getPlayerMissionSessionSelect.Append("select p.id, p.has_clan_tag, ");
+            getPlayerMissionSessionSelect.Append("ptmts.id, ptmts.length, ptmts.played ");
+            getPlayerMissionSessionSelect.Append("from player p ");
+            getPlayerMissionSessionSelect.Append("left join player_to_mission_to_session ptmts on ptmts.player_id = p.id and ptmts.mission_to_session_id = ");
+            getPlayerMissionSessionSelect.Append(DatabaseUtil.MISSION_TO_SESSION_ID_KEY);
+            getPlayerMissionSessionSelect.Append(" ");
+            getPlayerMissionSessionSelect.Append("where p.name = ");
+            getPlayerMissionSessionSelect.Append(DatabaseUtil.NAME_KEY);
 
-            _getPlayerSession = new MySqlCommand(getPlayerSessionSelect.ToString(), connection);
-            _getPlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.NAME_KEY, MySqlDbType.String));
-            _getPlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.SESSION_ID_KEY, MySqlDbType.Int32));
-            _getPlayerSession.Prepare();
+            _getPlayerMissionSession = new MySqlCommand(getPlayerMissionSessionSelect.ToString(), connection);
+            _getPlayerMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.NAME_KEY, MySqlDbType.String));
+            _getPlayerMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.MISSION_TO_SESSION_ID_KEY, MySqlDbType.Int32));
+            _getPlayerMissionSession.Prepare();
 
             StringBuilder addPlayerInsert = new StringBuilder();
             addPlayerInsert.Append("insert into player (name, has_clan_tag)");
@@ -178,34 +177,34 @@ namespace BWServerLogger.DAO {
             _addPlayer.Parameters.Add(new MySqlParameter(DatabaseUtil.HAS_CLAN_TAG_KEY, MySqlDbType.Bit));
             _addPlayer.Prepare();
 
-            StringBuilder addPlayerSessionInsert = new StringBuilder();
-            addPlayerSessionInsert.Append("insert into player_to_session (player_id, session_id) ");
-            addPlayerSessionInsert.Append("values (");
-            addPlayerSessionInsert.Append(DatabaseUtil.PLAYER_ID_KEY);
-            addPlayerSessionInsert.Append(", ");
-            addPlayerSessionInsert.Append(DatabaseUtil.SESSION_ID_KEY);
-            addPlayerSessionInsert.Append(")");
+            StringBuilder addPlayerMissionSessionInsert = new StringBuilder();
+            addPlayerMissionSessionInsert.Append("insert into player_to_mission_to_session (player_id, mission_to_session_id) ");
+            addPlayerMissionSessionInsert.Append("values (");
+            addPlayerMissionSessionInsert.Append(DatabaseUtil.PLAYER_ID_KEY);
+            addPlayerMissionSessionInsert.Append(", ");
+            addPlayerMissionSessionInsert.Append(DatabaseUtil.MISSION_TO_SESSION_ID_KEY);
+            addPlayerMissionSessionInsert.Append(")");
 
-            _addPlayerSession = new MySqlCommand(addPlayerSessionInsert.ToString(), connection);
-            _addPlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYER_ID_KEY, MySqlDbType.Int32));
-            _addPlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.SESSION_ID_KEY, MySqlDbType.Int32));
-            _addPlayerSession.Prepare();
+            _addPlayerMissionSession = new MySqlCommand(addPlayerMissionSessionInsert.ToString(), connection);
+            _addPlayerMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYER_ID_KEY, MySqlDbType.Int32));
+            _addPlayerMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.MISSION_TO_SESSION_ID_KEY, MySqlDbType.Int32));
+            _addPlayerMissionSession.Prepare();
 
-            StringBuilder playerSessionUpdate = new StringBuilder();
-            playerSessionUpdate.Append("update player_to_session ");
-            playerSessionUpdate.Append("set length = ");
-            playerSessionUpdate.Append(DatabaseUtil.LENGTH_KEY);
-            playerSessionUpdate.Append(", played = ");
-            playerSessionUpdate.Append(DatabaseUtil.PLAYED_KEY);
-            playerSessionUpdate.Append(" ");
-            playerSessionUpdate.Append("where id = ");
-            playerSessionUpdate.Append(DatabaseUtil.PLAYER_TO_SESSION_ID_KEY);
+            StringBuilder playerMissionSessionUpdate = new StringBuilder();
+            playerMissionSessionUpdate.Append("update player_to_mission_to_session ");
+            playerMissionSessionUpdate.Append("set length = ");
+            playerMissionSessionUpdate.Append(DatabaseUtil.LENGTH_KEY);
+            playerMissionSessionUpdate.Append(", played = ");
+            playerMissionSessionUpdate.Append(DatabaseUtil.PLAYED_KEY);
+            playerMissionSessionUpdate.Append(" ");
+            playerMissionSessionUpdate.Append("where id = ");
+            playerMissionSessionUpdate.Append(DatabaseUtil.PLAYER_TO_MISSION_TO_SESSION_ID_KEY);
 
-            _updatePlayerSession = new MySqlCommand(playerSessionUpdate.ToString(), connection);
-            _updatePlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.LENGTH_KEY, MySqlDbType.Int32));
-            _updatePlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYED_KEY, MySqlDbType.Bit));
-            _updatePlayerSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYER_TO_SESSION_ID_KEY, MySqlDbType.Int32));
-            _updatePlayerSession.Prepare();
+            _updatePlayerMissionSession = new MySqlCommand(playerMissionSessionUpdate.ToString(), connection);
+            _updatePlayerMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.LENGTH_KEY, MySqlDbType.Int32));
+            _updatePlayerMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYED_KEY, MySqlDbType.Bit));
+            _updatePlayerMissionSession.Parameters.Add(new MySqlParameter(DatabaseUtil.PLAYER_TO_MISSION_TO_SESSION_ID_KEY, MySqlDbType.Int32));
+            _updatePlayerMissionSession.Prepare();
 
             StringBuilder playerUpdate = new StringBuilder();
             playerUpdate.Append("update player ");
@@ -222,19 +221,19 @@ namespace BWServerLogger.DAO {
         }
 
         /// <summary>
-        /// Helper method to create a <see cref="PlayerSession"/> in the database
+        /// Helper method to create a <see cref="PlayerMissionSession"/> in the database
         /// </summary>
-        /// <param name="playerSession"><see cref="PlayerSession"/> to create</param>
-        /// <returns><see cref="PlayerSession"/> with added database id</returns>
-        private PlayerSession CreatePlayerSession(PlayerSession playerSession) {
-            _addPlayerSession.Parameters[DatabaseUtil.PLAYER_ID_KEY].Value = playerSession.Player.Id;
-            _addPlayerSession.Parameters[DatabaseUtil.SESSION_ID_KEY].Value = playerSession.Session.Id;
-            _addPlayerSession.ExecuteNonQuery();
+        /// <param name="playerMissionSession"><see cref="PlayerMissionSession"/> to create</param>
+        /// <returns><see cref="PlayerMissionSession"/> with added database id</returns>
+        private PlayerMissionSession CreatePlayerMissionSession(PlayerMissionSession playerMissionSession) {
+            _addPlayerMissionSession.Parameters[DatabaseUtil.PLAYER_ID_KEY].Value = playerMissionSession.Player.Id;
+            _addPlayerMissionSession.Parameters[DatabaseUtil.MISSION_TO_SESSION_ID_KEY].Value = playerMissionSession.MissionSession.Id;
+            _addPlayerMissionSession.ExecuteNonQuery();
 
-            playerSession.Id = GetLastInsertedId();
-            _logger.DebugFormat("Player session inserted into the database with ID: {0}", playerSession.Id);
+            playerMissionSession.Id = GetLastInsertedId();
+            _logger.DebugFormat("Player mission session inserted into the database with ID: {0}", playerMissionSession.Id);
 
-            return playerSession;
+            return playerMissionSession;
         }
     }
 }

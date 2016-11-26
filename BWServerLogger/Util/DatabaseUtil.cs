@@ -21,8 +21,7 @@ namespace BWServerLogger.Util {
 
         // database table constants
         public const string PLAYER = "player";
-        public const string PLAYER_TO_SESSION = "player_to_session";
-        public const string PLAYER_TO_SESSION_TO_MISSION_TO_SESSION = "player_to_session_to_mission_to_session";
+        public const string PLAYER_TO_MISSION_TO_SESSION = "player_to_mission_to_session";
         public const string MAP = "map";
         public const string MISSION = "mission";
         public const string MISSION_TO_SESSION = "mission_to_session";
@@ -37,7 +36,6 @@ namespace BWServerLogger.Util {
         public const string MAX_PLAYERS_KEY = "@maxPlayers";
         public const string MAX_PING_KEY = "@maxPing";
         public const string MIN_PING_KEY = "@minPing";
-        public const string PLAYER_TO_SESSION_ID_KEY = "@playerToSessionId";
         public const string LENGTH_KEY = "@length";
         public const string PLAYED_KEY = "@played";
         public const string HAS_CLAN_TAG_KEY = "@hasClanTag";
@@ -51,7 +49,7 @@ namespace BWServerLogger.Util {
         public const string VERSION_KEY = "@version";
         public const string HOST_NAME_KEY = "@hostName";
         public const string SCHEDULE_ID_KEY = "@scheduleId";
-        public const string PLAYER_TO_SESSION_TO_MISSION_TO_SESSION_ID_KEY = "@ptstmtsId";
+        public const string PLAYER_TO_MISSION_TO_SESSION_ID_KEY = "@ptmtsId";
 
         // default target player count for a new mission
         public const int DEFAULT_PLAYER_COUNT = 50;
@@ -412,25 +410,6 @@ namespace BWServerLogger.Util {
             { new Index("mission_key_map_id_to_map", "map_id", "map", "id") }
         };
 
-        // player to session columns
-        private readonly static ISet<Column> _ptsColumns = new HashSet<Column> {
-            { new Column("id", "int(10) unsigned", false, "", true) },
-            { new Column("player_id", "int(10) unsigned", false, "", false) },
-            { new Column("session_id", "int(10) unsigned", false, "", false) },
-            { new Column("length", "int(10) unsigned", false, "'0'", false) },
-            { new Column("played", "bit(1)", false, "b'0'", false) }
-        };
-
-        // player to session indices
-        private readonly static IList<Index> _ptsIndices = new List<Index> {
-            { new Index("id") },
-            { new Index(IndexType.UNIQUE, "player_id_session_id", "player_id,session_id") },
-            { new Index(IndexType.NONUNIQUE, "player_id_to_player", "player_id") },
-            { new Index(IndexType.NONUNIQUE, "pts_key_session_id_to_session", "session_id") },
-            { new Index("pts_key_player_id_to_player", "player_id", "player", "id") },
-            { new Index("pts_key_session_id_to_session", "session_id", "session", "id") }
-        };
-
         // mission to session columns
         private readonly static ISet<Column> _mtsColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
@@ -451,22 +430,22 @@ namespace BWServerLogger.Util {
         };
 
         // mission to session columns
-        private readonly static ISet<Column> _ptstmtsColumns = new HashSet<Column> {
+        private readonly static ISet<Column> _ptmtsColumns = new HashSet<Column> {
             { new Column("id", "int(10) unsigned", false, "", true) },
-            { new Column("player_to_session_id", "int(10) unsigned", false, "", false) },
+            { new Column("player_id", "int(10) unsigned", false, "", false) },
             { new Column("mission_to_session_id", "int(10) unsigned", false, "", false) },
             { new Column("length", "int(10) unsigned", false, "'0'", false) },
             { new Column("played", "bit(1)", false, "b'0'", false) }
         };
 
         // mission to session indices
-        private readonly static IList<Index> _ptstmtsIndices = new List<Index> {
+        private readonly static IList<Index> _ptmtsIndices = new List<Index> {
             { new Index("id") },
-            { new Index(IndexType.UNIQUE, "mission_to_session_id_2", "mission_to_session_id,player_to_session_id") },
-            { new Index(IndexType.NONUNIQUE, "player_to_session_id", "player_to_session_id") },
+            { new Index(IndexType.UNIQUE, "player_to_mission_to_session_idx", "mission_to_session_id,player_id") },
+            { new Index(IndexType.NONUNIQUE, "player_id", "player_id") },
             { new Index(IndexType.NONUNIQUE, "mission_to_session_id", "mission_to_session_id") },
-            { new Index("ptstmts_to_mts", "mission_to_session_id", "mission_to_session", "id") },
-            { new Index("ptstmts_to_pts", "player_to_session_id", "player_to_session", "id") }
+            { new Index("ptmts_to_mts", "mission_to_session_id", "mission_to_session", "id") },
+            { new Index("ptmts_to_player", "player_id", "player", "id") }
         };
 
         // ORDER MATTERS!
@@ -489,14 +468,11 @@ namespace BWServerLogger.Util {
             // adding mission table (relies on map and framework)
             { new Table(MISSION, _missionColumns, _missionIndices) },
 
-            // adding player to session table (relies on player and session)
-            { new Table(PLAYER_TO_SESSION, _ptsColumns, _ptsIndices) },
-
             // addding mission to session table (relies on mission and session)
             { new Table(MISSION_TO_SESSION, _mtsColumns, _mtsIndices) },
 
-            // adding player to session to mission to session table (relies on pts and mts)
-            { new Table(PLAYER_TO_SESSION_TO_MISSION_TO_SESSION, _ptstmtsColumns, _ptstmtsIndices) }
+            // adding player to mission to session table (relies on pts and mts)
+            { new Table(PLAYER_TO_MISSION_TO_SESSION, _ptmtsColumns, _ptmtsIndices) }
         };
     }
 }
